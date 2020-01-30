@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace FileDispatchers
+namespace FileManagerLibrary
 {
-    public class CompressedFileDispatcher:IDisposable,IFileDispatcher
+    public class CompressedFileDispatcher : IDisposable, IFileDispatcher  //TODO change name
     {
         FileStream fileStream;
         long currentIndexOfBlock = 0;
@@ -43,27 +43,21 @@ namespace FileDispatchers
       
         public bool EndOfFile
         {
-            get
-            {
-                if (fileStream.Position >= fileStream.Length)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+             get => fileStream.Position >= fileStream.Length;           
         }
 
-        public FileStream FileStream { get => fileStream;  }
-        public long CurrentIndexOfBlock { get =>currentIndexOfBlock ;  }
+        public long CurrentIndexOfBlock { get => currentIndexOfBlock ;  } //TODO make data class
         public long NumberOfBlocks { get => numberOfBlocks; }
 
         public void Dispose()
         {
             fileStream.Close();
         }      
+        public void WriteLong(long value)
+        {
+            var valueBytes = BitConverter.GetBytes(value);
+            fileStream.Write(valueBytes, 0, valueBytes.Length);
+        }
         public void WriteBlock(byte[] block) 
         {
             var bytesCount = BitConverter.GetBytes(block.Length);

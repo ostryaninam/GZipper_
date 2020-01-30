@@ -5,9 +5,11 @@ VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GZip", "Gzip\GZip.csproj", "{C26AD47D-8AD3-4550-AB69-EB0368026992}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDispatchers", "FileManagerLibrary\FileDispatchers.csproj", "{3639A60A-AF85-482E-946F-EA99CBCEF00D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileManagerLibrary", "FileManagerLibrary\FileManagerLibrary.csproj", "{3639A60A-AF85-482E-946F-EA99CBCEF00D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{5C5DD416-0055-4C0B-902A-CDBBBCB06FCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FixedThreadPool", "FixedThreadPool\FixedThreadPool.csproj", "{F88C5C55-2850-47E5-9DED-EC263E9633A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{5C5DD416-0055-4C0B-902A-CDBBBCB06FCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C5DD416-0055-4C0B-902A-CDBBBCB06FCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C5DD416-0055-4C0B-902A-CDBBBCB06FCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F88C5C55-2850-47E5-9DED-EC263E9633A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F88C5C55-2850-47E5-9DED-EC263E9633A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F88C5C55-2850-47E5-9DED-EC263E9633A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F88C5C55-2850-47E5-9DED-EC263E9633A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

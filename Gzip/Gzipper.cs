@@ -1,4 +1,4 @@
-﻿using FileDispatchers;
+﻿using FileManagerLibrary;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,92 +7,72 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FixedThreadPool;
 
 namespace Gzip
 {
-    public delegate byte[] Operation(byte[] inputBytes);
+    public delegate byte[] GZipBlockOperation(byte[] inputBytes);
     public abstract class GZipper
-    {       
-        protected IFileDispatcher fileDispatcherFrom;
-        protected IFileDispatcher fileDispatcherTo;        
-        protected Operation blockOperation;
-
+    {
+        protected IFileDispatcher fileFrom;
+        protected IFileDispatcher fileTo;        
+        protected GZipBlockOperation GZipOperation;
+        protected CountdownEvent endSignal;
         protected ConcurrentDictionary<long, byte[]> blocks;
-        protected int indexResidue = 0;       
-        protected readonly int dictionaryMaxLength = Environment.ProcessorCount*10;
+        protected AutoResetEvent readyBlockEvent;
+        protected ManualResetEvent canWrite;
 
-        protected object locker = new object();
-        
-        protected CountdownEvent cde;
-        Thread writingThread;
+        int indexResidue = 0;       
+        readonly int dictionaryMaxLength = Environment.ProcessorCount*10;
+        object fileReadLocker = new object();
 
-        public Thread Thread { get => writingThread;  }
-
-        protected void DoGzipWork() 
+            
+        protected void GzipThreadWork()
         {
-            int numberOfThreads = Environment.ProcessorCount;
-            blocks = new ConcurrentDictionary<long, byte[]>();                       
-            cde = new CountdownEvent(numberOfThreads + 1);
-            for (int i = 0; i < numberOfThreads; i++)
-            {
-                Thread current = new Thread(new ThreadStart(GzipThread));
-                current.Start();
-            }
-            writingThread = new Thread(new ThreadStart(WritingThread));
-            writingThread.Start();
-            cde.Wait();
-            Console.WriteLine("Успешно");
-        }
-        void GzipThread()
-        {
-            while (!fileDispatcherFrom.EndOfFile)
+            while (!fileFrom.EndOfFile)
             {
                 byte[] fileBlock = null;
                 long indexOfBlock;
-                lock (locker)
+                lock (fileReadLocker)
                 {
-                    indexOfBlock = fileDispatcherFrom.CurrentIndexOfBlock;
-                    fileBlock = fileDispatcherFrom.GetBlock();
+                    indexOfBlock = fileFrom.CurrentIndexOfBlock;
+                    fileBlock = fileFrom.GetBlock();
                 }
-                var outputBlock = blockOperation(fileBlock);
-               
-                while (indexOfBlock / dictionaryMaxLength != indexResidue)
-                {
-                    Thread.Sleep(10);
-                }
-                blocks.TryAdd(indexOfBlock, outputBlock);
+                var outputBlock = GZipOperation(fileBlock);
+
+                if (indexOfBlock / dictionaryMaxLength != indexResidue)
+                    canWrite.WaitOne();
+
+                if (blocks.TryAdd(indexOfBlock, outputBlock))
+                    readyBlockEvent.Set();
                 
             }           
-            cde.Signal();
+            endSignal.Signal();
         }
-        void WritingThread()
+        protected void WritingThreadWork()
         {
             long writtenBlocks = 0;
-            while (fileDispatcherFrom.NumberOfBlocks > writtenBlocks)//TODO может тут говно
+            while (fileFrom.NumberOfBlocks > writtenBlocks)
             {
-                for (long i = indexResidue * dictionaryMaxLength;
+                canWrite.Reset();
+                for (long i = indexResidue * dictionaryMaxLength;   //TODO bad construction
                     i < dictionaryMaxLength * (indexResidue + 1); i++)
                 {
-                    if (fileDispatcherFrom.NumberOfBlocks > writtenBlocks)
+                    if (fileFrom.NumberOfBlocks > writtenBlocks)
                     {
-                        byte[] currentBlock;
-                        while (!blocks.TryRemove(i, out currentBlock))
-                        {
-                            Thread.Sleep(10);
-                        }
-                        fileDispatcherTo.WriteBlock(currentBlock);
-                        writtenBlocks++;
+                        if (!blocks.TryRemove(i, out var currentBlock))
+                            readyBlockEvent.WaitOne();
 
+                        fileTo.WriteBlock(currentBlock);
+                        writtenBlocks++;
                     }
                     else
                         break;  
                 }
                 indexResidue++;
-               
-            }
-                
-            cde.Signal();
-        }
-        
+                canWrite.Set();
+            }                
+            endSignal.Signal();
+        }        
     }
 }

@@ -1,16 +1,19 @@
-﻿using System;
+﻿using FileManagerLibrary;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using FileDispatchers;
 
 namespace Gzip
 {
     public class GZipCompressor:GZipper
     {
+        FixedThreadPool.FixedThreadPool threadPool;
         string pathFrom;
         string pathTo;
         public GZipCompressor(string pathFrom,string pathTo)
@@ -22,8 +25,23 @@ namespace Gzip
                 Console.WriteLine("Ошибка: неверный формат файла");
                 Environment.Exit(1);
             }
+            DoGzipWork();
         }
-        bool CheckExtensions()
+        protected void DoGzipWork()
+        {
+            threadPool = new FixedThreadPool.FixedThreadPool();
+            blocks = new ConcurrentDictionary<long, byte[]>();
+            readyBlockEvent = new AutoResetEvent(false);
+            canWrite = new ManualResetEvent(false);
+            endSignal = new CountdownEvent(threadPool.Count);
+
+            for (int i = 0; i < threadPool.Count - 1; i++)
+                threadPool.Execute(() => GzipThreadWork());
+            threadPool.Execute(() => WritingThreadWork());
+            endSignal.Wait();
+            Console.WriteLine("Успешно");
+        }
+        bool CheckExtensions()                              //TODO to FileDispatcher
         {
             FileInfo fileFrom = new FileInfo(pathFrom);
             FileInfo fileTo = new FileInfo(pathTo);
@@ -34,16 +52,14 @@ namespace Gzip
         }
         public void Compress()
         {
-            using (fileDispatcherFrom = new SimpleFileDispatcher(pathFrom, 1024 * 1024))
+            using (fileFrom = new SimpleFileDispatcher(pathFrom, 1024 * 1024))
             {
-                using (fileDispatcherTo = new
+                using (fileTo = new
                     CompressedFileDispatcher(pathTo, "compress"))
-                {                   
-                    var numOfBlocksByte = BitConverter.
-                        GetBytes(fileDispatcherFrom.NumberOfBlocks);
-                    ((CompressedFileDispatcher)fileDispatcherTo)
-                        .FileStream.Write(numOfBlocksByte, 0, numOfBlocksByte.Length);//TODO доступ к стриму класса-плохо                          
-                    blockOperation = CompressBlock;
+                {
+                    //write number of blocks
+                    ((CompressedFileDispatcher)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          
+                    GZipOperation = CompressBlock;
                     DoGzipWork();                    
                 }
             }

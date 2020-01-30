@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 
 
-namespace FileDispatchers
+namespace FileManagerLibrary
 {
     public class SimpleFileDispatcher:IFileDispatcher
     {

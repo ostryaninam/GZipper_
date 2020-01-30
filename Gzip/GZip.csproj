@@ -53,9 +53,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FileManagerLibrary\FileDispatchers.csproj">
+    <ProjectReference Include="..\FileManagerLibrary\FileManagerLibrary.csproj">
       <Project>{3639a60a-af85-482e-946f-ea99cbcef00d}</Project>
-      <Name>FileDispatchers</Name>
+      <Name>FileManagerLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FixedThreadPool\FixedThreadPool.csproj">
+      <Project>{f88c5c55-2850-47e5-9ded-ec263e9633a0}</Project>
+      <Name>FixedThreadPool</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using FileDispatchers;
+using FileManagerLibrary;
 
 namespace Gzip
 {
@@ -14,6 +14,7 @@ namespace Gzip
     {
         string pathFrom;
         string pathTo;
+        FixedThreadPool.FixedThreadPool threadPool;
         public GZipDecompressor(string pathFrom,string pathTo)
         {
             this.pathFrom = pathFrom;
@@ -23,6 +24,20 @@ namespace Gzip
                 Console.WriteLine("Ошибка: неверный формат файла");
                 Environment.Exit(1);
             }
+        }
+        protected void DoGzipWork()
+        {
+            threadPool = new FixedThreadPool.FixedThreadPool();
+            blocks = new ConcurrentDictionary<long, byte[]>();
+            readyBlockEvent = new AutoResetEvent(false);
+            canWrite = new ManualResetEvent(false);
+            endSignal = new CountdownEvent(threadPool.Count);
+
+            for (int i = 0; i < threadPool.Count - 1; i++)
+                threadPool.Execute(() => GzipThreadWork());
+            threadPool.Execute(() => WritingThreadWork());
+            endSignal.Wait();
+            Console.WriteLine("Успешно");
         }
         bool CheckExtensions()
         {
@@ -35,12 +50,12 @@ namespace Gzip
         }
         public void Decompress()
         {
-            using (fileDispatcherFrom = new
+            using (fileFrom = new
                    CompressedFileDispatcher(pathFrom,"decompress"))
             {
-                using (fileDispatcherTo = new SimpleFileDispatcher(pathTo))
+                using (fileTo = new SimpleFileDispatcher(pathTo))
                 {                    
-                    blockOperation = DecompressBlock;
+                    GZipOperation = DecompressBlock;
                     DoGzipWork();                   
                 }
             }            
