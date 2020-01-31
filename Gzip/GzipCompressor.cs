@@ -20,12 +20,6 @@ namespace Gzip
         {
             this.pathFrom = pathFrom;
             this.pathTo = pathTo;
-            if (!CheckExtensions())
-            {
-                Console.WriteLine("Ошибка: неверный формат файла");
-                Environment.Exit(1);
-            }
-            DoGzipWork();
         }
         protected void DoGzipWork()
         {
@@ -41,18 +35,10 @@ namespace Gzip
             endSignal.Wait();
             Console.WriteLine("Успешно");
         }
-        bool CheckExtensions()                              //TODO to FileDispatcher
-        {
-            FileInfo fileFrom = new FileInfo(pathFrom);
-            FileInfo fileTo = new FileInfo(pathTo);
-            if (fileFrom.Extension != ".gz" && fileTo.Extension == ".gz")
-                return true;
-            else
-                return false;
-        }
+      
         public void Compress()
         {
-            using (fileFrom = new SimpleFileDispatcher(pathFrom, 1024 * 1024))
+            using (fileFrom = new SimpleFileDispatcher(pathFrom, 1024 * 1024)) //size of block
             {
                 using (fileTo = new
                     CompressedFileDispatcher(pathTo, "compress"))

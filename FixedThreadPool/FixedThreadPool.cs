@@ -17,7 +17,7 @@ namespace FixedThreadPool
         private bool isDisposed;
         private object stoplock = new object();
         
-        private List<Task> tasks;
+        private ConcurrentQueue<Task> tasks;
         private Dictionary<int, AutoResetEvent> wakeEvents;
         private Thread[] threads;                               
         private Thread managerThread;
@@ -27,7 +27,8 @@ namespace FixedThreadPool
         public FixedThreadPool()
         {
             threadsCount = Environment.ProcessorCount;
-            tasks = new List<Task>();
+            wakeEvents = new Dictionary<int, AutoResetEvent>();
+            tasks = new ConcurrentQueue<Task>();
             threads = new Thread[threadsCount];
             Start();
         }
@@ -35,6 +36,7 @@ namespace FixedThreadPool
         {
             managerEvent = new AutoResetEvent(false);
             managerThread = new Thread(ManagerThreadWork) { IsBackground = true };
+            managerThread.Start();
             for(int i = 0; i < threadsCount; i++)
             {
                 Thread thread = new Thread(ThreadWork) { IsBackground = true };
@@ -62,44 +64,28 @@ namespace FixedThreadPool
             while (true)
             {
                 wakeEvents[Thread.CurrentThread.ManagedThreadId].WaitOne();
-                var task = SelectTask();
-                if (task!=null)
+
+                if (Remove(out var task))         
                 {
-                    task.Execute();
-                    lock (stoplock)       
+                    lock (stoplock)
                     {
-                        Remove(task);
                         if (isStopping)
                             stopSignal.Signal();
                     }
+                    task.Execute();
                 }                
             }
         }
-        private Task SelectTask()
+        private bool Remove(out Task task)
         {
-            Task task = null;
-            lock (tasks)
-            {
-                task = tasks.FirstOrDefault(t => !t.IsRunning);
-            }
-            return task;
-        }
-        private void Remove(Task task)
-        {
-            lock (tasks)
-            {
-                tasks.Remove(task);
-            }
-
-            if (tasks.Count > 0 && tasks.Where(t => !t.IsRunning).Count() > 0)  //if there's a free task
+            bool result=tasks.TryDequeue(out task); 
+            if (tasks.Count > 0)  
                 managerEvent.Set();
+            return result;
         }
         private void AddAndStartNewTask(Task task)
         {
-            lock (tasks)
-            {
-                tasks.Add(task);
-            }
+            tasks.Enqueue(task);
             managerEvent.Set();
         }
         private void ManagerThreadWork()
@@ -107,13 +93,9 @@ namespace FixedThreadPool
             while (true)
             {
                 managerEvent.WaitOne();
-                foreach (var t in wakeEvents.Values)    //trying to find a free task
+                foreach (var t in wakeEvents.Values)    //free all tasks
                 {
-                    if (!t.WaitOne())
-                    {
-                        t.Set();
-                        break;
-                    }
+                    t.Set();
                 }
             }
         }

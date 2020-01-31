@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,20 +26,38 @@ namespace Gzip
             else
             {
                 Console.WriteLine("Неверный формат ввода");
-                Environment.Exit(1);
+                return -1;
             }
-            if (operation == "compress")
+            if (CheckExtensions(pathFrom, pathTo))
             {
-                gzipper = new GZipCompressor(pathFrom,pathTo);
-                ((GZipCompressor)gzipper).Compress();
+                if (operation == "compress")
+                {
+                    gzipper = new GZipCompressor(pathFrom, pathTo);
+                    ((GZipCompressor)gzipper).Compress();
+                }
+                if (operation == "decompress")
+                {
+                    gzipper = new GZipDecompressor(pathFrom, pathTo);
+                    ((GZipDecompressor)gzipper).Decompress();
+                }
+                return 0;
             }
-            if (operation == "decompress")
+            else
             {
-                gzipper = new GZipDecompressor(pathFrom, pathTo);
-                ((GZipDecompressor)gzipper).Decompress();
+                Console.WriteLine("Неверный формат входного/выходного файла");
+                return -1;
             }
-            gzipper.Thread.Join();
-            return 0;
+
+        }
+        static bool CheckExtensions(string pathFrom, string pathTo)                             
+        {
+            FileInfo fileFrom = new FileInfo(pathFrom);
+            FileInfo fileTo = new FileInfo(pathTo);
+            if (fileFrom.Extension != ".gz" && fileTo.Extension == ".gz")
+                return true;
+            else
+                return false;
         }
     }
+
 }

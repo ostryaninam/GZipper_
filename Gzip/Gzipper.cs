@@ -22,8 +22,8 @@ namespace Gzip
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
 
-        int indexResidue = 0;       
-        readonly int dictionaryMaxLength = Environment.ProcessorCount*10;
+        int setIndex = 0;       
+        readonly int blocksSet = Environment.ProcessorCount*10;
         object fileReadLocker = new object();
 
             
@@ -37,10 +37,11 @@ namespace Gzip
                 {
                     indexOfBlock = fileFrom.CurrentIndexOfBlock;
                     fileBlock = fileFrom.GetBlock();
+                    Console.WriteLine(fileBlock);
                 }
                 var outputBlock = GZipOperation(fileBlock);
 
-                if (indexOfBlock / dictionaryMaxLength != indexResidue)
+                if (indexOfBlock / blocksSet != setIndex)
                     canWrite.WaitOne();
 
                 if (blocks.TryAdd(indexOfBlock, outputBlock))
@@ -55,21 +56,21 @@ namespace Gzip
             while (fileFrom.NumberOfBlocks > writtenBlocks)
             {
                 canWrite.Reset();
-                for (long i = indexResidue * dictionaryMaxLength;   //TODO bad construction
-                    i < dictionaryMaxLength * (indexResidue + 1); i++)
+                for (long i = setIndex * blocksSet; i < blocksSet * (setIndex + 1); i++)
                 {
                     if (fileFrom.NumberOfBlocks > writtenBlocks)
                     {
-                        if (!blocks.TryRemove(i, out var currentBlock))
+                        var currentBlock = new byte[1024*1024];
+                        while (!blocks.TryGetValue(i, out currentBlock))
                             readyBlockEvent.WaitOne();
-
                         fileTo.WriteBlock(currentBlock);
                         writtenBlocks++;
                     }
                     else
                         break;  
                 }
-                indexResidue++;
+                GC.Collect();
+                setIndex++;
                 canWrite.Set();
             }                
             endSignal.Signal();

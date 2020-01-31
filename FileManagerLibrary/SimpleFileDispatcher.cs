@@ -6,7 +6,7 @@ using System.IO;
 
 namespace FileManagerLibrary
 {
-    public class SimpleFileDispatcher:IFileDispatcher
+    public class SimpleFileDispatcher : IFileDispatcher
     {
         long numberOfBlocks = 0;
         int blockSize;
@@ -49,18 +49,8 @@ namespace FileManagerLibrary
         public long NumberOfBlocks { get => numberOfBlocks; }
         public int BlockSize { get => blockSize; }
         public long CurrentIndexOfBlock { get => currentIndexOfBlock; }
-        public bool EndOfFile {
-            get
-            {
-                if (FileStream.Position >= FileStream.Length)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+        public bool EndOfFile { 
+              get => (fileStream.Position >= fileStream.Length);           
         }
 
         public FileStream FileStream { get => fileStream;  }
