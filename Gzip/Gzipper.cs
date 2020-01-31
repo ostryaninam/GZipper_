@@ -60,16 +60,16 @@ namespace Gzip
                 {
                     if (fileFrom.NumberOfBlocks > writtenBlocks)
                     {
-                        var currentBlock = new byte[1024*1024];
-                        while (!blocks.TryGetValue(i, out currentBlock))
+                        while (!blocks.TryGetValue(i, out var block))
                             readyBlockEvent.WaitOne();
-                        fileTo.WriteBlock(currentBlock);
+                        if (blocks.TryRemove(i, out var currentBlock))
+                                fileTo.WriteBlock(currentBlock);
                         writtenBlocks++;
                     }
                     else
                         break;  
                 }
-                GC.Collect();
+                //GC.Collect();
                 setIndex++;
                 canWrite.Set();
             }                
