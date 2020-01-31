@@ -37,7 +37,6 @@ namespace Gzip
                 {
                     indexOfBlock = fileFrom.CurrentIndexOfBlock;
                     fileBlock = fileFrom.GetBlock();
-                    Console.WriteLine(fileBlock);
                 }
                 var outputBlock = GZipOperation(fileBlock);
 
