@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FileManagerLibrary.Abstractions;
+using FileManagerLibrary.Implementations;
 
 namespace Gzip
 {
@@ -38,16 +40,12 @@ namespace Gzip
       
         public void Compress()
         {
-            using (fileFrom = new SimpleFileDispatcher(pathFrom, 1024 * 1024)) //size of block
-            {
-                using (fileTo = new
-                    CompressedFileDispatcher(pathTo, "compress"))
-                {
-                    //write number of blocks
-                    ((CompressedFileDispatcher)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          
+            using (IFileDispatcher fileFrom = new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader(), 
+                                   fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
+            {                 
+                    ((IFileWriter)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          
                     GZipOperation = CompressBlock;
                     DoGzipWork();                    
-                }
             }
         }
         byte[] CompressBlock(byte[] bytesToCompress)

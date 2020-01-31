@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using FileManagerLibrary;
+using FileManagerLibrary.Abstractions;
+using FileManagerLibrary.Implementations;
 
 namespace Gzip
 {
@@ -37,15 +39,12 @@ namespace Gzip
 
         public void Decompress()
         {
-            using (fileFrom = new
-                   CompressedFileDispatcher(pathFrom,"decompress"))
+            using (IFileDispatcher fileFrom = new CompressedFileFactory(pathFrom).GetFileReader(),
+                                   fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
             {
-                using (fileTo = new SimpleFileDispatcher(pathTo))
-                {                    
                     GZipOperation = DecompressBlock;
-                    DoGzipWork();                   
-                }
-            }            
+                    DoGzipWork();
+            }                        
         }
         byte[] DecompressBlock(byte[] bytesToDecompress)
         {
