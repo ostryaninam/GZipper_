@@ -6,7 +6,6 @@ namespace FileManagerLibrary.Abstractions
 {
     interface IFileFactory
     {
-        public IFileFactory(string path, int )
         IFileReader GetFileReader();
         IFileWriter GetFileWriter();
     }

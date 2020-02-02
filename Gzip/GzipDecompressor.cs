@@ -9,6 +9,7 @@ using System.Threading;
 using FileManagerLibrary;
 using FileManagerLibrary.Abstractions;
 using FileManagerLibrary.Implementations;
+using FixedThreadPool;
 
 namespace Gzip
 {
@@ -24,7 +25,7 @@ namespace Gzip
         }
         protected void DoGzipWork()
         {
-            threadPool = new FixedThreadPool.FixedThreadPool();
+            threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
             blocks = new ConcurrentDictionary<long, byte[]>();
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
@@ -39,8 +40,8 @@ namespace Gzip
 
         public void Decompress()
         {
-            using (IFileDispatcher fileFrom = new CompressedFileFactory(pathFrom).GetFileReader(),
-                                   fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
+            using (IFileReader fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
+                using(IFileWriter fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
             {
                     GZipOperation = DecompressBlock;
                     DoGzipWork();

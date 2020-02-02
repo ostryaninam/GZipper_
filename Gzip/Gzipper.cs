@@ -8,14 +8,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FixedThreadPool;
+using FileManagerLibrary.Abstractions;
 
 namespace Gzip
 {
     public delegate byte[] GZipBlockOperation(byte[] inputBytes);
     public abstract class GZipper
     {
-        protected IFileDispatcher fileFrom;
-        protected IFileDispatcher fileTo;        
+        protected IFileReader fileFrom;
+        protected IFileWriter fileTo;        
         protected GZipBlockOperation GZipOperation;
         protected CountdownEvent endSignal;
         protected ConcurrentDictionary<long, byte[]> blocks;
@@ -36,7 +37,7 @@ namespace Gzip
                 lock (fileReadLocker)
                 {
                     indexOfBlock = fileFrom.CurrentIndexOfBlock;
-                    fileBlock = fileFrom.GetBlock();
+                    fileBlock = fileFrom.ReadBlock();
                 }
                 var outputBlock = GZipOperation(fileBlock);
 

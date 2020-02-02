@@ -12,7 +12,6 @@ namespace FixedThreadPool
 
         public void Execute()
         {
-            isRunning = true;
             action();
         }
     }

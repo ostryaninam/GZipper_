@@ -6,6 +6,7 @@ namespace FileManagerLibrary.Abstractions
 {
     public interface IFileReader : IFileDispatcher
     {
+        long CurrentIndexOfBlock { get; }
         byte[] ReadBlock();
     }
 }
