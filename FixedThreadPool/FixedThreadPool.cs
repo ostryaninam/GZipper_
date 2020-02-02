@@ -7,10 +7,10 @@ using System.Linq;
 
 namespace FixedThreadPool
 {
-    public class FixedThreadPool:IDisposable
+    public class FixedThreadPool : IDisposable
     {
+        private static FixedThreadPool instance;
         private int threadsCount;
-
         private bool isStopping;
         private CountdownEvent stopSignal;
         private AutoResetEvent managerEvent;
@@ -24,13 +24,19 @@ namespace FixedThreadPool
 
         public int Count { get => threadsCount; }
 
-        public FixedThreadPool()
+        private FixedThreadPool()
         {
             threadsCount = Environment.ProcessorCount;
             wakeEvents = new Dictionary<int, AutoResetEvent>();
             tasks = new ConcurrentQueue<Task>();
             threads = new Thread[threadsCount];
             Start();
+        }
+        public static FixedThreadPool GetInstance()
+        {
+            if (instance == null)
+                instance = new FixedThreadPool();
+            return instance;
         }
         private void Start()
         {
