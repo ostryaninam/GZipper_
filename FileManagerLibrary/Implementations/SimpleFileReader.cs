@@ -27,10 +27,9 @@ namespace FileManagerLibrary.Implementations
                 if (fileStream.Length % blockSize != 0)
                     numberOfBlocks++;
             }
-            catch (Exception)
+            catch (IOException)
             {
-                Console.WriteLine("Ошибка: неверный путь к файлу");
-                Environment.Exit(1);
+                throw;
             }
         }
         public long CurrentIndexOfBlock => currentIndexOfBlock;

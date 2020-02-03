@@ -21,10 +21,9 @@ namespace FileManagerLibrary.Implementations
                 fileStream.Read(byteNumberOfBlocks, 0, 8);
                 numberOfBlocks = BitConverter.ToInt64(byteNumberOfBlocks, 0);
             }
-            catch (Exception)
+            catch (IOException e)
             {
-                Console.WriteLine("Ошибка: неверный путь к файлу");
-                Environment.Exit(1);
+                throw;
             }
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;

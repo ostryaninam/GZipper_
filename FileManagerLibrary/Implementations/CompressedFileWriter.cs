@@ -17,10 +17,9 @@ namespace FileManagerLibrary.Implementations
             {
                 fileStream = new FileStream(path, FileMode.Create);
             }
-            catch (Exception)
+            catch (IOException)
             {
-                Console.WriteLine("Ошибка: неверный путь к файлу");
-                Environment.Exit(1);
+                throw;
             }
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;

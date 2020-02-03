@@ -70,9 +70,7 @@ namespace Gzip
             }
             catch (Exception)
             {
-                Console.WriteLine("Ошибка сжатия: проблемы с содержимым файла");
-                Environment.Exit(1);
-                return resultBytes;
+                throw;
             }
 
         }

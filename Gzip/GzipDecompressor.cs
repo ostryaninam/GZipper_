@@ -71,9 +71,7 @@ namespace Gzip
             }
             catch (Exception)
             {
-                Console.WriteLine("Ошибка распаковки: проблемы с содержимым файла");
-                Environment.Exit(1);
-                return resultBytes;
+                throw;
             }
         }
 

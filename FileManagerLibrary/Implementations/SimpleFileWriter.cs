@@ -18,10 +18,9 @@ namespace FileManagerLibrary.Implementations
             {
                 fileStream = File.Create(path);
             }
-            catch
+            catch(IOException)
             {
-                Console.WriteLine("Ошибка: неверный путь к файлу");
-                Environment.Exit(1);
+                throw;
             }
         }
         public long NumberOfBlocks => numberOfBlocks;
