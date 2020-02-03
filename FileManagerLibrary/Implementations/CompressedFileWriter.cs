@@ -1,4 +1,5 @@
-﻿using FileManagerLibrary.Abstractions;
+﻿using ExceptionsHandling;
+using FileManagerLibrary.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,9 +18,9 @@ namespace FileManagerLibrary.Implementations
             {
                 fileStream = new FileStream(path, FileMode.Create);
             }
-            catch (IOException)
+            catch (IOException e)
             {
-                throw;
+                ExceptionsHandler.Handle(e);
             }
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;

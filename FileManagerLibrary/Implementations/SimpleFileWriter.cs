@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
 
 namespace FileManagerLibrary.Implementations
@@ -10,7 +11,6 @@ namespace FileManagerLibrary.Implementations
     {
         FileStream fileStream;
         long numberOfBlocks = 0;
-        int blockSize;
 
         public SimpleFileWriter(string path)
         {
@@ -18,9 +18,9 @@ namespace FileManagerLibrary.Implementations
             {
                 fileStream = File.Create(path);
             }
-            catch(IOException)
+            catch(IOException e)
             {
-                throw;
+                ExceptionsHandler.Handle(e);
             }
         }
         public long NumberOfBlocks => numberOfBlocks;

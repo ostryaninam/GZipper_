@@ -11,6 +11,7 @@ namespace FixedThreadPool
     {
         private static FixedThreadPool instance;
         private int threadsCount;
+        private static bool isWorking;
         private bool isStopping;
         private CountdownEvent stopSignal;
         private AutoResetEvent managerEvent;
@@ -23,7 +24,7 @@ namespace FixedThreadPool
         private Thread managerThread;
 
         public int Count { get => threadsCount; }
-
+        public static bool IsWorking { get => isWorking; }
         private FixedThreadPool()
         {
             threadsCount = Environment.ProcessorCount;
@@ -50,6 +51,7 @@ namespace FixedThreadPool
                 threads[i] = thread;
                 threads[i].Start();
             }
+            isWorking = true;
         }
         public bool Execute(Action action)
         {

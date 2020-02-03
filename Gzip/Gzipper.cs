@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FixedThreadPool;
 using FileManagerLibrary.Abstractions;
+using ExceptionsHandling;
 
 namespace Gzip
 {
@@ -33,14 +34,21 @@ namespace Gzip
             while (!fileFrom.EndOfFile)
             {
                 byte[] fileBlock = null;
-                long indexOfBlock;
-                lock (fileReadLocker)
+                long indexOfBlock = 0;
+                byte[] outputBlock = null;
+                try
                 {
-                    indexOfBlock = fileFrom.CurrentIndexOfBlock;
-                    fileBlock = fileFrom.ReadBlock();
+                    lock (fileReadLocker)
+                    {
+                        indexOfBlock = fileFrom.CurrentIndexOfBlock;
+                        fileBlock = fileFrom.ReadBlock();
+                    }
+                    outputBlock = GZipOperation(fileBlock);
                 }
-                var outputBlock = GZipOperation(fileBlock);
-
+                catch(Exception e)
+                {
+                    ExceptionsHandler.Handle(e);
+                }
                 if (indexOfBlock / blocksSet != setIndex)
                     canWrite.WaitOne();
 

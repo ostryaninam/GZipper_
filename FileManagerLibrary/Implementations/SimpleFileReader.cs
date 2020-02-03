@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
 
 namespace FileManagerLibrary.Implementations
@@ -27,9 +28,9 @@ namespace FileManagerLibrary.Implementations
                 if (fileStream.Length % blockSize != 0)
                     numberOfBlocks++;
             }
-            catch (IOException)
+            catch (IOException e)
             {
-                throw;
+                ExceptionsHandler.Handle(e);
             }
         }
         public long CurrentIndexOfBlock => currentIndexOfBlock;

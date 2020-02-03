@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using FileManagerLibrary.Abstractions;
+using ExceptionsHandling;
 
 namespace FileManagerLibrary.Implementations
 {
@@ -23,7 +24,7 @@ namespace FileManagerLibrary.Implementations
             }
             catch (IOException e)
             {
-                throw;
+                ExceptionsHandler.Handle(e);
             }
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;
