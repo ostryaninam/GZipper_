@@ -10,7 +10,6 @@ namespace FileManagerLibrary.Implementations
     class SimpleFileWriter : IFileWriter
     {
         FileStream fileStream;
-        long numberOfBlocks = 0;
 
         public SimpleFileWriter(string path)
         {
@@ -23,9 +22,6 @@ namespace FileManagerLibrary.Implementations
                 ExceptionsHandler.Handle(e);
             }
         }
-        public long NumberOfBlocks => numberOfBlocks;
-
-        public bool EndOfFile => (fileStream.Position >= fileStream.Length);
 
         public void WriteBlock(byte[] block)
         {

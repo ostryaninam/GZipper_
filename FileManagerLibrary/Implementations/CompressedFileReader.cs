@@ -12,7 +12,6 @@ namespace FileManagerLibrary.Implementations
         FileStream fileStream;
         long currentIndexOfBlock = 0;
         Int64 numberOfBlocks;
-
         public CompressedFileReader(string path)
         {
             try

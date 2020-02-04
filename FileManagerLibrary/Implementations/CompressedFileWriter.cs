@@ -10,7 +10,6 @@ namespace FileManagerLibrary.Implementations
     class CompressedFileWriter : IFileWriter
     {
         FileStream fileStream;
-        Int64 numberOfBlocks;
 
         public CompressedFileWriter(string path)
         {
@@ -23,8 +22,6 @@ namespace FileManagerLibrary.Implementations
                 ExceptionsHandler.Handle(e);
             }
         }
-        public bool EndOfFile => fileStream.Position >= fileStream.Length;
-        public long NumberOfBlocks { get => numberOfBlocks; }
         public void WriteLong(long value)
         {
             var valueBytes = BitConverter.GetBytes(value);
