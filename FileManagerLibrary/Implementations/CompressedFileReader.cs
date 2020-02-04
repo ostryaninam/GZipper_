@@ -23,7 +23,7 @@ namespace FileManagerLibrary.Implementations
             }
             catch (IOException e)
             {
-                ExceptionsHandler.Handle(e);
+                ExceptionsHandler.Handle(this.GetType(),e);
             }
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;

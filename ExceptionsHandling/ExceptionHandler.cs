@@ -12,9 +12,9 @@ namespace ExceptionsHandling
             LogManager.Configuration = new XmlLoggingConfiguration("NLog.config");
             logger = LogManager.GetCurrentClassLogger();
         }
-        public static void Handle(Exception e)
+        public static void Handle(Type source,Exception e)
         {
-            logger.Info($"Exception in {e.StackTrace}: {e.Message}");
+            logger.Error($"In {source}.cs: {e.Message}");
             Stop();
             GC.Collect();
             Environment.Exit(1);

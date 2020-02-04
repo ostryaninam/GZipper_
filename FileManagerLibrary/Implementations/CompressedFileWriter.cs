@@ -19,7 +19,7 @@ namespace FileManagerLibrary.Implementations
             }
             catch (IOException e)
             {
-                ExceptionsHandler.Handle(e);
+                ExceptionsHandler.Handle(this.GetType(),e);
             }
         }
         public void WriteLong(long value)

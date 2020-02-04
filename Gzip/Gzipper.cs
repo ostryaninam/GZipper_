@@ -47,7 +47,7 @@ namespace Gzip
                 }
                 catch(Exception e)
                 {
-                    ExceptionsHandler.Handle(e);
+                    ExceptionsHandler.Handle(this.GetType(), e);
                 }
                 if (indexOfBlock / blocksSet != setIndex)
                     canWrite.WaitOne();

@@ -23,14 +23,14 @@ namespace FileManagerLibrary.Implementations
                 numberOfBlocks = fileStream.Length / blockSize;
                 if (numberOfBlocks == 0)
                 {
-                    Console.WriteLine("Ошибка: размер файла меньше 1 Мб");
+                    ExceptionsHandler.Handle(this.GetType(), new FileSizeException());
                 }
                 if (fileStream.Length % blockSize != 0)
                     numberOfBlocks++;
             }
             catch (IOException e)
             {
-                ExceptionsHandler.Handle(e);
+                ExceptionsHandler.Handle(this.GetType(),e);
             }
         }
         public long CurrentIndexOfBlock => currentIndexOfBlock;
