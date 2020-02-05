@@ -38,12 +38,15 @@ namespace Gzip
             Console.WriteLine("Успешно");
         }
 
+        protected override byte[] GZipOperation(byte[] inputBytes)
+        {
+            return DecompressBlock(inputBytes);
+        }
         public void Decompress()
         {
             using (IFileReader fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
                 using(IFileWriter fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
             {
-                    GZipOperation = DecompressBlock;
                     DoGzipWork();
             }                        
         }

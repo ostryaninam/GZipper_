@@ -13,12 +13,10 @@ using ExceptionsHandling;
 
 namespace Gzip
 {
-    public delegate byte[] GZipBlockOperation(byte[] inputBytes);
     public abstract class GZipper
     {
         protected IFileReader fileFrom;
         protected IFileWriter fileTo;        
-        protected GZipBlockOperation GZipOperation;
         protected CountdownEvent endSignal;
         protected ConcurrentDictionary<long, byte[]> blocks;
         protected AutoResetEvent readyBlockEvent;
@@ -77,11 +75,12 @@ namespace Gzip
                     else
                         break;  
                 }
-                //GC.Collect();
                 setIndex++;
                 canWrite.Set();
             }                
             endSignal.Signal();
-        }        
+        }
+        protected abstract byte[] GZipOperation(byte[] inputBytes);
+        
     }
 }

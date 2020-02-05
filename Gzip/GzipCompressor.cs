@@ -45,9 +45,13 @@ namespace Gzip
 
             {                 
                     ((IFileWriter)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          
-                    GZipOperation = CompressBlock;
                     DoGzipWork();                    
             }
+        }
+
+        protected override byte[] GZipOperation(byte[] inputBytes)
+        {
+            return CompressBlock(inputBytes);
         }
         byte[] CompressBlock(byte[] bytesToCompress)
         {
