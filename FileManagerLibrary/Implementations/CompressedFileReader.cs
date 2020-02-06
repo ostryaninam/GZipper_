@@ -17,9 +17,7 @@ namespace FileManagerLibrary.Implementations
             try
             {
                 fileStream = new FileStream(path, FileMode.Open);
-                var byteNumberOfBlocks = new byte[8];
-                fileStream.Read(byteNumberOfBlocks, 0, 8);
-                numberOfBlocks = BitConverter.ToInt64(byteNumberOfBlocks, 0);
+                ReadNumberOfBlocks();
             }
             catch (IOException e)
             {
@@ -31,13 +29,24 @@ namespace FileManagerLibrary.Implementations
         public long NumberOfBlocks { get => numberOfBlocks; }
         public byte[] ReadBlock()
         {
-            byte[] byteLengthOfBlock = new byte[4];
-            fileStream.Read(byteLengthOfBlock, 0, 4);
-            var lengthOfBlock = BitConverter.ToInt32(byteLengthOfBlock, 0);
+            var lengthOfBlock = ReadInt32();
             byte[] fileBlock = new byte[lengthOfBlock];
             fileStream.Read(fileBlock, 0, lengthOfBlock);
             currentIndexOfBlock++;
             return fileBlock;
+        }
+        private void ReadNumberOfBlocks()
+        {
+            var byteNumberOfBlocks = new byte[8];
+            fileStream.Read(byteNumberOfBlocks, 0, 8);
+            numberOfBlocks = BitConverter.ToInt64(byteNumberOfBlocks, 0);
+        }
+
+        private int ReadInt32()
+        {
+            byte[] byteLengthOfBlock = new byte[4];
+            fileStream.Read(byteLengthOfBlock, 0, 4);
+            return BitConverter.ToInt32(byteLengthOfBlock, 0);
         }
         public void Dispose()
         {

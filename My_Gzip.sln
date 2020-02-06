@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixedThreadPool", "FixedThr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExceptionsHandling", "ExceptionsHandling\ExceptionsHandling.csproj", "{A9F58470-F804-4A81-9192-15AAA03EEBB4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataCollection", "DataCollection\DataCollection.csproj", "{894766A7-CC71-4FEA-96EE-7ADB22483220}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A9F58470-F804-4A81-9192-15AAA03EEBB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9F58470-F804-4A81-9192-15AAA03EEBB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9F58470-F804-4A81-9192-15AAA03EEBB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{894766A7-CC71-4FEA-96EE-7ADB22483220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{894766A7-CC71-4FEA-96EE-7ADB22483220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{894766A7-CC71-4FEA-96EE-7ADB22483220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{894766A7-CC71-4FEA-96EE-7ADB22483220}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

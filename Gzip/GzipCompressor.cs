@@ -13,7 +13,7 @@ using FileManagerLibrary.Implementations;
 
 namespace Gzip
 {
-    public class GZipCompressor:GZipper
+    public class GZipCompressor : GZipper
     {
         FixedThreadPool.FixedThreadPool threadPool;
         string pathFrom;
