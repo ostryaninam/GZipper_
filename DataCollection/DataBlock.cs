@@ -4,13 +4,13 @@ namespace DataCollection
 {
     public class DataBlock
     {
-        private int index;
+        private long index;
         private byte[] block;
         public int Length { get => block.Length; }
-        public int Index { get => index; }
-        public byte[] Block { get => block; }
+        public long Index { get => index; }
+        public byte[] GetBytes { get => block; }
 
-        public DataBlock(int index, byte[] block)
+        public DataBlock(long index, byte[] block)
         {
             this.index = index;
             this.block = block;

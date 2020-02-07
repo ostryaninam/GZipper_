@@ -26,7 +26,7 @@ namespace Gzip
         protected void DoGzipWork()
         {
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
-            blocks = new ConcurrentDictionary<long, byte[]>();
+            dataBlocks = new DataCollection.BlockingDataCollection(100);
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);

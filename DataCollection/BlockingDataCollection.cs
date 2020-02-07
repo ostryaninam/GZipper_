@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace DataCollection
 {
-    class BlockingDataCollection : IProducerConsumerCollection<DataBlock>
+    public class BlockingDataCollection : IProducerConsumerCollection<DataBlock>
     {
         private Queue<DataBlock> dataQueue;
         ManualResetEvent blockAdded;
@@ -18,14 +18,15 @@ namespace DataCollection
         private int dataSetCount = 0;
         private object lockObject;
 
-        public int BoundedCapacity { get => boundedCapacity; set { boundedCapacity = value; } }
+        public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
         public bool IsSynchronized => true;
 
         public object SyncRoot => lockObject;
 
-        public BlockingDataCollection()
+        public BlockingDataCollection(int boundedCapacity)
         {
+            this.boundedCapacity = boundedCapacity;
             dataQueue = new Queue<DataBlock>();
             lockObject = new object();
             blockAdded = new ManualResetEvent(false);

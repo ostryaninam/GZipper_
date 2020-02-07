@@ -53,6 +53,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DataCollection\DataCollection.csproj">
+      <Project>{894766a7-cc71-4fea-96ee-7adb22483220}</Project>
+      <Name>DataCollection</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ExceptionsHandling\ExceptionsHandling.csproj">
       <Project>{a9f58470-f804-4a81-9192-15aaa03eebb4}</Project>
       <Name>ExceptionsHandling</Name>
