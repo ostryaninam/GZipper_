@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
+using DataCollection;
 
 namespace FileManagerLibrary.Implementations
 {
@@ -39,7 +40,7 @@ namespace FileManagerLibrary.Implementations
 
         public bool EndOfFile => (fileStream.Position >= fileStream.Length);
 
-        public byte[] ReadBlock()
+        public DataBlock ReadBlock()
         {
             byte[] fileBlock = new byte[blockSize];
 
@@ -48,20 +49,20 @@ namespace FileManagerLibrary.Implementations
                 try
                 {
                     fileStream.Read(fileBlock, 0, blockSize);
+                    var result = new DataBlock(currentIndexOfBlock, fileBlock);
                     currentIndexOfBlock++;
-                    return fileBlock;
+                    return result;
                 }
                 catch (EndOfStreamException)
                 {
                     fileStream.Read(fileBlock, 0, (int)(fileStream.Length - fileStream.Position));
-                    return fileBlock;
+                    return new DataBlock(currentIndexOfBlock, fileBlock);
                 }
 
             }
             else
             {
-                fileStream.Read(fileBlock, 0, (int)fileStream.Length);
-                return fileBlock;
+                throw new FileSizeException();
             }
         }
 

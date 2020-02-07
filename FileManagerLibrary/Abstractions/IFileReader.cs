@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DataCollection;
 
 namespace FileManagerLibrary.Abstractions
 {
@@ -9,6 +10,6 @@ namespace FileManagerLibrary.Abstractions
         bool EndOfFile { get; }
         long NumberOfBlocks { get; }
         long CurrentIndexOfBlock { get; }
-        byte[] ReadBlock();
+        DataBlock ReadBlock();
     }
 }

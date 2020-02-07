@@ -8,7 +8,7 @@ namespace DataCollection
         private byte[] block;
         public int Length { get => block.Length; }
         public long Index { get => index; }
-        public byte[] GetBytes { get => block; }
+        public byte[] GetBlockBytes { get => block; }
 
         public DataBlock(long index, byte[] block)
         {
