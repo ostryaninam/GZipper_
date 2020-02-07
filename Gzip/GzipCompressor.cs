@@ -40,8 +40,8 @@ namespace Gzip
       
         public void Compress()
         {
-            using (IFileReader fileFrom = new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader())
-                using(IFileWriter fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
+            using (fileFrom = new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader())
+                using(fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
 
             {                 
                     ((IFileWriter)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          

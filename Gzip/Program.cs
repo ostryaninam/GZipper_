@@ -50,7 +50,7 @@ namespace Gzip
 
 
             Gzip.GZipCompressor compressor = new Gzip.GZipCompressor
-                (@"C:\Users\asus\Desktop\ohi.txt", @"C:\Users\asus\Desktop\ohi.gz");
+                (@"C:\фильмы\Poslezavtra.avi", @"C:\фильмы\Poslezavtra.gz");
             compressor.Compress();
             return 0;
         }

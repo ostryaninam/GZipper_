@@ -44,8 +44,8 @@ namespace Gzip
         }
         public void Decompress()
         {
-            using (IFileReader fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
-                using(IFileWriter fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
+            using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
+                using(fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
             {
                     DoGzipWork();
             }                        
