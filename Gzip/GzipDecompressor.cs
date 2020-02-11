@@ -108,13 +108,7 @@ namespace Gzip
                 }
                 dataDictionary.TryAdd(result.Index,result.GetBlockBytes);
 
-                stopwatch.Stop();
-                lock (sumLocker)
-                    timeSummaryGZip += stopwatch.ElapsedMilliseconds;
-                ExceptionsHandler.Log($"Gzip thread number {Thread.CurrentThread.ManagedThreadId} " +
-                    $"gzipped block number {result.Index} in {stopwatch.ElapsedMilliseconds} ms");
             }
-            ExceptionsHandler.Log($"Time on gzipping: {timeSummaryGZip/4}");
             endSignal.Signal();
         }
         protected override void WritingThreadWork()

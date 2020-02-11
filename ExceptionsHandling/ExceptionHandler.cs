@@ -12,7 +12,7 @@ namespace ExceptionsHandling
             LogManager.Configuration = new XmlLoggingConfiguration("NLog.config");
             logger = LogManager.GetCurrentClassLogger();
         }
-        public static void Handle(Type source,Exception e) //TODO what should I do with threadpool?
+        public static void Handle(Type source,Exception e)
         {
             logger.Error($"In {source}.cs: {e.Message}");
             Stop();

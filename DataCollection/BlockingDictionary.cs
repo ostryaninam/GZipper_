@@ -9,7 +9,7 @@ namespace DataCollection
 {
     public class BlockingDictionary 
     {
-        private Dictionary<long, byte[]> dataDictionary;  //TODO do abstract class with T
+        private Dictionary<long, byte[]> dataDictionary;  
         ManualResetEvent blockAdded;
         ManualResetEvent blockTaken;
         AutoResetEvent isEmpty;
@@ -18,8 +18,6 @@ namespace DataCollection
 
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataDictionary.Count;
-        public bool IsSynchronized => true;
-        public object SyncRoot => lockObject;
 
         public BlockingDictionary()
         {

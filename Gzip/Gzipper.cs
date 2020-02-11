@@ -21,7 +21,6 @@ namespace Gzip
         protected CountdownEvent endSignal;
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
-        protected BlockingDataCollection dataBlocks;
         public abstract void DoGZipWork();
 
         protected abstract void GzipThreadWork();

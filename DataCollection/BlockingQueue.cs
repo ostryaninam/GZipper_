@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace DataCollection
 {
-    public class BlockingDataCollection : IProducerConsumerCollection<DataBlock>
+    public class BlockingQueue
     {
         private Queue<DataBlock> dataQueue;
         ManualResetEvent blockAdded;
@@ -18,10 +18,8 @@ namespace DataCollection
 
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
-        public bool IsSynchronized => true;
-        public object SyncRoot => lockObject;
-
-        public BlockingDataCollection()
+ 
+        public BlockingQueue()
         {
             this.boundedCapacity = 5000;
             dataQueue = new Queue<DataBlock>();
@@ -30,37 +28,24 @@ namespace DataCollection
             blockAdded = new ManualResetEvent(false);
             isEmpty = new AutoResetEvent(true);
         }
-        public void CopyTo(DataBlock[] array, int index)
-        {
-            lock (lockObject)
-            {
-                dataQueue.CopyTo(array, index);
-            }
-        }
-
-        public DataBlock[] ToArray()
-        {
-            DataBlock[] result = null;
-            lock (lockObject)
-            {
-                result = dataQueue.ToArray();
-            }
-            return result;
-        }
-
+       
         public bool TryAdd(DataBlock block) 
         {
-            if (dataQueue.Count<=boundedCapacity)
-                lock (lockObject)
-                {
-                    dataQueue.Enqueue(block);   
-                    blockAdded.Set();                             
-                    blockAdded.Reset();
-                }
-            else
+            bool result = false;
+            while (!result)
             {
-                blockTaken.WaitOne();
-                TryAdd(block);
+                if (dataQueue.Count <= boundedCapacity)
+                    lock (lockObject)
+                    {
+                        dataQueue.Enqueue(block);
+                        result = true;
+                        blockAdded.Set();
+                        blockAdded.Reset();
+                    }
+                else
+                {
+                    blockTaken.WaitOne();
+                }
             }
             return true;            
         }
@@ -90,27 +75,5 @@ namespace DataCollection
             return true;
         }
 
-        public IEnumerator<DataBlock> GetEnumerator()
-        {
-            Queue<DataBlock> queueCopy = null;
-            lock (lockObject)
-            {
-                queueCopy = new Queue<DataBlock>(dataQueue);
-            }
-            return queueCopy.GetEnumerator();
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            lock (lockObject)
-            {
-                ((ICollection)dataQueue).CopyTo(array, index);
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable<DataBlock>)this).GetEnumerator();
-        }
     }
 }

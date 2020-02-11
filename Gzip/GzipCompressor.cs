@@ -13,6 +13,7 @@ using FileManagerLibrary.Implementations;
 using DataCollection;
 using ExceptionsHandling;
 using System.Diagnostics;
+using DataCollection;
 
 namespace Gzip
 {
@@ -22,12 +23,13 @@ namespace Gzip
         string pathFrom;
         string pathTo;
         object fileReadLocker = new object();
+        BlockingQueue dataBlocks;
         public GZipCompressor(string pathFrom,string pathTo)
         {
             this.pathFrom = pathFrom;
             this.pathTo = pathTo;
-            threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); //TODO naming
-            dataBlocks = new DataCollection.BlockingDataCollection();
+            threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); 
+            dataBlocks = new BlockingQueue();
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);
@@ -111,7 +113,7 @@ namespace Gzip
         protected override void WritingThreadWork()
         {            
             long writtenBlocks = 0;
-            while (fileFrom.NumberOfBlocks > writtenBlocks) //TODO could I do it better?
+            while (fileFrom.NumberOfBlocks > writtenBlocks)
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
