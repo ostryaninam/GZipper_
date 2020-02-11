@@ -49,9 +49,15 @@ namespace Gzip
             //}
 
 
+<<<<<<< HEAD
             Gzip.GZipCompressor compressor = new Gzip.GZipCompressor
                 (@"C:\фильмы\Poslezavtra.avi", @"C:\фильмы\Poslezavtra.gz");
             compressor.Compress();
+=======
+            Gzip.GZipDecompressor compressor = new Gzip.GZipDecompressor
+                (@"C:\фильмы\Poslezavtra1.gz", @"C:\фильмы\Poslezavtra1.avi"); //TODO в файлах проверку на расширение
+            compressor.Decompress();
+>>>>>>> without_datasets
             return 0;
         }
         static bool CheckExtensions(string pathFrom, string pathTo)                             

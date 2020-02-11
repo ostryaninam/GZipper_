@@ -19,10 +19,16 @@ namespace ExceptionsHandling
             GC.Collect();
             Environment.Exit(1);
         }
+        public static void Log(string message)
+        {
+            logger.Info(message);
+        }
         static void Stop()
         {
             if (FixedThreadPool.FixedThreadPool.IsWorking)
                 FixedThreadPool.FixedThreadPool.GetInstance().Stop();
         }
+
+
     }
 }

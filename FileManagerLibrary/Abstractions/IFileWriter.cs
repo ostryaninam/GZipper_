@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DataCollection;
 
 namespace FileManagerLibrary.Abstractions
 {
     public interface IFileWriter : IDisposable
     {
-        void WriteBlock(byte[] block);
-        void WriteLong(long value);
+        void WriteBlock(DataBlock block);
+        void WriteInt32(int value);
     }
 }

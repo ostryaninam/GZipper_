@@ -1,16 +1,17 @@
-﻿using ExceptionsHandling;
+﻿using DataCollection;
+using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace FileManagerLibrary.Implementations
 {
     class CompressedFileWriter : IFileWriter
     {
         FileStream fileStream;
-
         public CompressedFileWriter(string path)
         {
             try
@@ -22,19 +23,23 @@ namespace FileManagerLibrary.Implementations
                 ExceptionsHandler.Handle(this.GetType(),e);
             }
         }
-        public void WriteLong(long value)
+        private void WriteIndex(long value)
         {
             var valueBytes = BitConverter.GetBytes(value);
             fileStream.Write(valueBytes, 0, valueBytes.Length);
         }
-        public void WriteBlock(byte[] block)
+        public void WriteInt32(int value)
         {
-            var bytesCount = BitConverter.GetBytes(block.Length);
-            List<byte> blocksToWrite = new List<byte>();
-            blocksToWrite.AddRange(bytesCount);
-            blocksToWrite.AddRange(block);
-            fileStream.Write(blocksToWrite.ToArray(), 0, blocksToWrite.Count);
+            var valueBytes = BitConverter.GetBytes(value);
+            fileStream.Write(valueBytes, 0, valueBytes.Length);
         }
+        public void WriteBlock(DataBlock block)
+        {
+            WriteIndex(block.Index);
+            WriteInt32(block.Length);
+            fileStream.Write(block.GetBlockBytes, 0, block.Length);
+        }
+
         public void Dispose()
         {
             fileStream.Close();

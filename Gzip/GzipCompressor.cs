@@ -10,14 +10,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using FileManagerLibrary.Abstractions;
 using FileManagerLibrary.Implementations;
+using DataCollection;
+using ExceptionsHandling;
+using System.Diagnostics;
 
 namespace Gzip
 {
-    public class GZipCompressor:GZipper
+    public class GZipCompressor : GZipper
     {
         FixedThreadPool.FixedThreadPool threadPool;
         string pathFrom;
         string pathTo;
+        object fileReadLocker = new object();
         public GZipCompressor(string pathFrom,string pathTo)
         {
             this.pathFrom = pathFrom;
@@ -26,7 +30,7 @@ namespace Gzip
         protected void DoGzipWork()
         {
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); //TODO naming
-            blocks = new ConcurrentDictionary<long, byte[]>();
+            dataBlocks = new DataCollection.BlockingDataCollection();
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);
@@ -43,9 +47,9 @@ namespace Gzip
             using (fileFrom = new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader())
                 using(fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
 
-            {                 
-                    ((IFileWriter)fileTo).WriteLong(fileFrom.NumberOfBlocks);                          
-                    DoGzipWork();                    
+            {
+                fileTo.WriteInt32(fileFrom.NumberOfBlocks);
+                DoGzipWork();                    
             }
         }
 
@@ -77,6 +81,50 @@ namespace Gzip
                 throw;
             }
 
+        }
+        protected new void GzipThreadWork()
+        {
+            while (!fileFrom.EndOfFile)
+            {
+                Stopwatch stopwatch = new Stopwatch();
+
+                DataBlock fileBlock = null;
+                DataBlock result = null;
+                stopwatch.Start();
+                try
+                {
+                    lock (fileReadLocker)
+                    {
+                        fileBlock = fileFrom.ReadBlock();
+                    }
+                    result = new DataBlock(fileBlock.Index, GZipOperation(fileBlock.GetBlockBytes));
+                }
+                catch (Exception e)
+                {
+                    ExceptionsHandler.Handle(this.GetType(), e);
+                }
+                dataBlocks.TryAdd(result);
+                stopwatch.Stop();
+                ExceptionsHandler.Log($"Gzip thread number {Thread.CurrentThread.ManagedThreadId} " +
+                    $"gzipped block in {stopwatch.ElapsedMilliseconds} ms");
+            }
+            endSignal.Signal();
+        }
+        protected new void WritingThreadWork()
+        {            
+            long writtenBlocks = 0;
+            while (fileFrom.NumberOfBlocks > writtenBlocks) //TODO could I do it better?
+            {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                dataBlocks.TryTake(out var block);                
+                fileTo.WriteBlock(block);
+                writtenBlocks++;
+                stopwatch.Stop();
+                ExceptionsHandler.Log($"Writing thread " +
+                    $"wrote block in {stopwatch.ElapsedMilliseconds} ms");
+            }
+            endSignal.Signal();
         }
     }
 }

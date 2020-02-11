@@ -4,13 +4,14 @@ using System.IO;
 using System.Text;
 using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
+using DataCollection;
 
 namespace FileManagerLibrary.Implementations
 {
     class SimpleFileReader : IFileReader
     {
         FileStream fileStream;
-        long numberOfBlocks = 0;
+        int numberOfBlocks = 0;
         int blockSize;
         long currentIndexOfBlock = 0;
         public SimpleFileReader(string path, int blockSize)
@@ -20,7 +21,7 @@ namespace FileManagerLibrary.Implementations
             {
                 fileStream = File.OpenRead(path);
                 this.blockSize = blockSize;
-                numberOfBlocks = fileStream.Length / blockSize;
+                numberOfBlocks = (int)(fileStream.Length / blockSize);
                 if (numberOfBlocks == 0)
                 {
                     ExceptionsHandler.Handle(this.GetType(), new FileSizeException());
@@ -35,33 +36,32 @@ namespace FileManagerLibrary.Implementations
         }
         public long CurrentIndexOfBlock => currentIndexOfBlock;
 
-        public long NumberOfBlocks => numberOfBlocks;
+        public int NumberOfBlocks => numberOfBlocks;
 
         public bool EndOfFile => (fileStream.Position >= fileStream.Length);
 
-        public byte[] ReadBlock()
+        public DataBlock ReadBlock()
         {
             byte[] fileBlock = new byte[blockSize];
-
+            var index = currentIndexOfBlock;
             if (fileStream.Length >= blockSize)
             {
                 try
                 {
                     fileStream.Read(fileBlock, 0, blockSize);
                     currentIndexOfBlock++;
-                    return fileBlock;
+                    return new DataBlock(index, fileBlock);
                 }
                 catch (EndOfStreamException)
                 {
                     fileStream.Read(fileBlock, 0, (int)(fileStream.Length - fileStream.Position));
-                    return fileBlock;
+                    return new DataBlock(index, fileBlock);
                 }
 
             }
             else
             {
-                fileStream.Read(fileBlock, 0, (int)fileStream.Length);
-                return fileBlock;
+                throw new FileSizeException();
             }
         }
 
