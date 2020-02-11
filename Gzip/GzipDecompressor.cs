@@ -32,34 +32,33 @@ namespace Gzip
         {
             this.pathFrom = pathFrom;
             this.pathTo = pathTo;
-        }
-        protected void DoGzipWork()
-        {
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
             dataDictionary = new BlockingDictionary();
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);
-
+        }
+        public override void DoGZipWork()
+        {
+            using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
+                using (fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
+            {
+                StartThreads();
+                endSignal.Wait();
+                Console.WriteLine("Успешно");
+            }
+        }
+        private void StartThreads()
+        {
             for (int i = 0; i < threadPool.Count - 1; i++)
                 threadPool.Execute(() => GzipThreadWork());
             threadPool.Execute(() => WritingThreadWork());
-            endSignal.Wait();
-            Console.WriteLine("Успешно");
         }
-
         protected override byte[] GZipOperation(byte[] inputBytes)
         {
             return DecompressBlock(inputBytes);
         }
-        public void Decompress()
-        {
-            using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
-                using(fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
-            {
-                    DoGzipWork();
-            }                        
-        }
+
         byte[] DecompressBlock(byte[] bytesToDecompress)
         {
             byte[] resultBytes = null;
@@ -87,7 +86,7 @@ namespace Gzip
                 throw;
             }
         }
-        protected void GzipThreadWork()
+        protected override void GzipThreadWork()
         {
             while (!fileFrom.EndOfFile)
             {
@@ -118,7 +117,7 @@ namespace Gzip
             ExceptionsHandler.Log($"Time on gzipping: {timeSummaryGZip/4}");
             endSignal.Signal();
         }
-        protected void WritingThreadWork()
+        protected override void WritingThreadWork()
         {
             long writtenBlocks = 0;
             for (int i=0; i< fileFrom.NumberOfBlocks; i++)

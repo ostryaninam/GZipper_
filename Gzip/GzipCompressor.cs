@@ -26,38 +26,37 @@ namespace Gzip
         {
             this.pathFrom = pathFrom;
             this.pathTo = pathTo;
-        }
-        protected void DoGzipWork()
-        {
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); //TODO naming
             dataBlocks = new DataCollection.BlockingDataCollection();
             readyBlockEvent = new AutoResetEvent(false);
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);
-
-            for (int i = 0; i < threadPool.Count - 1; i++)
-                threadPool.Execute(() => GzipThreadWork());
-            threadPool.Execute(() => WritingThreadWork());
-            endSignal.Wait();
-            Console.WriteLine("Успешно");
         }
-      
-        public void Compress()
+        public override void DoGZipWork()
         {
             using (fileFrom = new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader())
-                using(fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
+                using (fileTo = new CompressedFileFactory(pathTo).GetFileWriter())
 
             {
                 fileTo.WriteInt32(fileFrom.NumberOfBlocks);
-                DoGzipWork();                    
+                StartThreads();
+                endSignal.Wait();
+                Console.WriteLine("Успешно");
             }
+        }
+      
+        private void StartThreads()
+        {
+            for (int i = 0; i < threadPool.Count - 1; i++)
+                threadPool.Execute(() => GzipThreadWork());
+            threadPool.Execute(() => WritingThreadWork());
         }
 
         protected override byte[] GZipOperation(byte[] inputBytes)
         {
             return CompressBlock(inputBytes);
         }
-        byte[] CompressBlock(byte[] bytesToCompress)
+        private byte[] CompressBlock(byte[] bytesToCompress)
         {
             byte[] resultBytes = null;
 
@@ -82,12 +81,11 @@ namespace Gzip
             }
 
         }
-        protected new void GzipThreadWork()
+        protected override void GzipThreadWork()
         {
             while (!fileFrom.EndOfFile)
             {
                 Stopwatch stopwatch = new Stopwatch();
-
                 DataBlock fileBlock = null;
                 DataBlock result = null;
                 stopwatch.Start();
@@ -110,7 +108,7 @@ namespace Gzip
             }
             endSignal.Signal();
         }
-        protected new void WritingThreadWork()
+        protected override void WritingThreadWork()
         {            
             long writtenBlocks = 0;
             while (fileFrom.NumberOfBlocks > writtenBlocks) //TODO could I do it better?

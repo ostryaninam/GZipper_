@@ -22,47 +22,12 @@ namespace Gzip
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
         protected BlockingDataCollection dataBlocks;
+        public abstract void DoGZipWork();
 
-        int setIndex = 0;       
-        readonly int blocksSet = Environment.ProcessorCount*10;
-        object fileReadLocker = new object();
+        protected abstract void GzipThreadWork();
 
-            
-        //protected void GzipThreadWork()
-        //{
-        //    while (!fileFrom.EndOfFile)
-        //    {
-        //        byte[] fileBlock = null;
-        //        long indexOfBlock = 0;
-        //        byte[] result = null;    //TODO I don't need datablock index in compressor
-        //        try
-        //        {
-        //            lock (fileReadLocker)
-        //            {
-        //                indexOfBlock = fileFrom.CurrentIndexOfBlock;
-        //                fileBlock = fileFrom.ReadBlock();
-        //            }
-        //            result=GZipOperation(fileBlock);
-        //        }
-        //        catch(Exception e)
-        //        {
-        //            ExceptionsHandler.Handle(this.GetType(), e);
-        //        }
-        //        dataBlocks.TryAdd(result);                
-        //    }           
-        //    endSignal.Signal();
-        //}
-        //protected void WritingThreadWork()
-        //{
-        //    long writtenBlocks = 0;
-        //    while (fileFrom.NumberOfBlocks > writtenBlocks)
-        //    {
-        //        dataBlocks.TryTake(out var item);
-        //        fileTo.WriteBlock(item);
-        //        writtenBlocks++;                                   
-        //    }                
-        //    endSignal.Signal();
-        //}
+        protected abstract void WritingThreadWork();
+        
         protected abstract byte[] GZipOperation(byte[] inputBytes);
         
     }
