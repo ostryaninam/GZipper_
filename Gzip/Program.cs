@@ -49,9 +49,9 @@ namespace Gzip
             //}
 
 
-            Gzip.GZipCompressor compressor = new Gzip.GZipCompressor
-                (@"C:\Users\asus\Desktop\ohi.txt", @"C:\Users\asus\Desktop\ohi.gz");
-            compressor.Compress();
+            Gzip.GZipDecompressor compressor = new Gzip.GZipDecompressor
+                (@"C:\фильмы\Poslezavtra1.gz", @"C:\фильмы\Poslezavtra1.avi"); //TODO в файлах проверку на расширение
+            compressor.Decompress();
             return 0;
         }
         static bool CheckExtensions(string pathFrom, string pathTo)                             

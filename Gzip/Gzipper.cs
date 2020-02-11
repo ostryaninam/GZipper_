@@ -28,41 +28,41 @@ namespace Gzip
         object fileReadLocker = new object();
 
             
-        protected void GzipThreadWork()
-        {
-            while (!fileFrom.EndOfFile)
-            {
-                byte[] fileBlock = null;
-                long indexOfBlock = 0;
-                DataBlock result = null;
-                try
-                {
-                    lock (fileReadLocker)
-                    {
-                        indexOfBlock = fileFrom.CurrentIndexOfBlock;
-                        fileBlock = fileFrom.ReadBlock();
-                    }
-                    result=new DataBlock(indexOfBlock,GZipOperation(fileBlock));
-                }
-                catch(Exception e)
-                {
-                    ExceptionsHandler.Handle(this.GetType(), e);
-                }
-                dataBlocks.TryAdd(result);                
-            }           
-            endSignal.Signal();
-        }
-        protected void WritingThreadWork()
-        {
-            long writtenBlocks = 0;
-            while (fileFrom.NumberOfBlocks > writtenBlocks)
-            {
-                dataBlocks.TryTake(out var item);
-                fileTo.WriteBlock(item.GetBytes);
-                writtenBlocks++;                                   
-            }                
-            endSignal.Signal();
-        }
+        //protected void GzipThreadWork()
+        //{
+        //    while (!fileFrom.EndOfFile)
+        //    {
+        //        byte[] fileBlock = null;
+        //        long indexOfBlock = 0;
+        //        byte[] result = null;    //TODO I don't need datablock index in compressor
+        //        try
+        //        {
+        //            lock (fileReadLocker)
+        //            {
+        //                indexOfBlock = fileFrom.CurrentIndexOfBlock;
+        //                fileBlock = fileFrom.ReadBlock();
+        //            }
+        //            result=GZipOperation(fileBlock);
+        //        }
+        //        catch(Exception e)
+        //        {
+        //            ExceptionsHandler.Handle(this.GetType(), e);
+        //        }
+        //        dataBlocks.TryAdd(result);                
+        //    }           
+        //    endSignal.Signal();
+        //}
+        //protected void WritingThreadWork()
+        //{
+        //    long writtenBlocks = 0;
+        //    while (fileFrom.NumberOfBlocks > writtenBlocks)
+        //    {
+        //        dataBlocks.TryTake(out var item);
+        //        fileTo.WriteBlock(item);
+        //        writtenBlocks++;                                   
+        //    }                
+        //    endSignal.Signal();
+        //}
         protected abstract byte[] GZipOperation(byte[] inputBytes);
         
     }

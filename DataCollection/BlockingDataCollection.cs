@@ -11,29 +11,25 @@ namespace DataCollection
     {
         private Queue<DataBlock> dataQueue;
         ManualResetEvent blockAdded;
-        ManualResetEvent newDataSet;
+        ManualResetEvent blockTaken;
         AutoResetEvent isEmpty;
         private int boundedCapacity;
-        private int dataSetIndex = 0;
-        private int dataSetCount = 0;
         private object lockObject;
 
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
         public bool IsSynchronized => true;
-
         public object SyncRoot => lockObject;
 
-        public BlockingDataCollection(int boundedCapacity)
+        public BlockingDataCollection()
         {
-            this.boundedCapacity = boundedCapacity;
+            this.boundedCapacity = 5000;
             dataQueue = new Queue<DataBlock>();
+            blockTaken = new ManualResetEvent(false);
             lockObject = new object();
             blockAdded = new ManualResetEvent(false);
-            newDataSet = new ManualResetEvent(false);
             isEmpty = new AutoResetEvent(true);
         }
-
         public void CopyTo(DataBlock[] array, int index)
         {
             lock (lockObject)
@@ -52,49 +48,44 @@ namespace DataCollection
             return result;
         }
 
-        public bool TryAdd(DataBlock item) 
+        public bool TryAdd(DataBlock block) 
         {
-            if (item.Index / boundedCapacity == dataSetIndex) //if index is in dataset bounds
+            if (dataQueue.Count<=boundedCapacity)
                 lock (lockObject)
                 {
-                    dataQueue.Enqueue(item);    //add item
-                    blockAdded.Set();           //set the event of adding new block
-                    dataSetCount++;             //how many blocks from current dataset added
-                    if (dataSetCount == boundedCapacity) //if all blocks are already added
-                    {
-                        isEmpty.WaitOne();          //waits for all dataset blocks are got
-                        NewDataSet();
-                    }
+                    dataQueue.Enqueue(block);   
+                    blockAdded.Set();                             
                     blockAdded.Reset();
                 }
             else
             {
-                newDataSet.WaitOne();
-                TryAdd(item);
+                blockTaken.WaitOne();
+                TryAdd(block);
             }
             return true;            
         }
 
-        private void NewDataSet()
-        {
-            dataSetCount = 0;
-            dataSetIndex++;
-            newDataSet.Set();
-            newDataSet.Reset();
-        }
 
         public bool TryTake(out DataBlock item)
         {
-            if (dataQueue.Count > 0)
+            bool result = false;
+            item = null;
+            while (!result)
             {
-                lock (lockObject)
-                    item = dataQueue.Dequeue();
-            }
-            else
-            {
-                isEmpty.Set();
-                blockAdded.WaitOne();
-                TryTake(out item);
+                if (dataQueue.Count > 0)
+                {
+                    lock (lockObject)
+                    {
+                        item = dataQueue.Dequeue();
+                        result = true;
+                        blockTaken.Set();
+                        blockTaken.Reset();
+                    }
+                }
+                else
+                {
+                    blockAdded.WaitOne();
+                }
             }
             return true;
         }

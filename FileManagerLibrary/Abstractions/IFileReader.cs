@@ -8,8 +8,7 @@ namespace FileManagerLibrary.Abstractions
     public interface IFileReader : IDisposable
     {
         bool EndOfFile { get; }
-        long NumberOfBlocks { get; }
-        long CurrentIndexOfBlock { get; }
+        int NumberOfBlocks { get; }
         DataBlock ReadBlock();
     }
 }
