@@ -12,10 +12,9 @@ namespace FixedThreadPool
     {
         private static FixedThreadPool instance;
         private int threadsCount;
-        private static bool isWorking;
+        private bool isWorking;
         private bool isStopping;
         private CountdownEvent stopSignal;
-        private bool isDisposed;
         private object stoplock = new object();
         
         private BlockingQueue<Action> actions;
@@ -23,7 +22,9 @@ namespace FixedThreadPool
         private Thread[] threads;                               
 
         public int Count { get => threadsCount; }
-        public static bool IsWorking { get => isWorking; }
+        public bool IsStopping { get => isStopping; }
+        public bool IsWorking { get => isWorking; }
+
         private FixedThreadPool()
         {
             actions = new BlockingQueue<Action>();
@@ -43,7 +44,6 @@ namespace FixedThreadPool
             for(int i = 0; i < threadsCount; i++)
             {
                 Thread thread = new Thread(ThreadWork) { IsBackground = true };
-                wakeEvents.Add(thread.ManagedThreadId, new AutoResetEvent(false));
                 threads[i] = thread;
                 threads[i].Start();
             }
@@ -56,7 +56,7 @@ namespace FixedThreadPool
             {
                 if (!isStopping)
                 {
-                    result = (actions.TryAdd(action));                     
+                    result = actions.TryAdd(action);                     
                 }
             }
             return result;
@@ -79,25 +79,18 @@ namespace FixedThreadPool
                     action();
                 }                
             }
-        }
-        public void Stop()                          
-        {
-            lock (stoplock)
-            {
-                isStopping = true;
-                stopSignal = new CountdownEvent(actions.Count);
-            } 
-            stopSignal.Wait();                              //wait for all tasks to end
-            Dispose(true);
-        }
+        }       
         public void Dispose()
         {
-            lock (stoplock)
+            if (IsWorking)
             {
-                isStopping = true;
-                stopSignal = new CountdownEvent(actions.Count);
+                lock (stoplock)
+                {
+                    isStopping = true;
+                    stopSignal = new CountdownEvent(actions.Count);
+                }
+                stopSignal.Wait();
             }
-            stopSignal.Wait();
         }
     }
 }

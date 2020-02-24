@@ -11,26 +11,30 @@ namespace DataCollection
     {
         private Queue<T> dataQueue;
         private AutoResetEvent itemAdded;
+        private AutoResetEvent itemTaken;
         private AutoResetEvent isEmpty;
         private int boundedCapacity;
         private object lockObject;
 
+        public bool IsCompleted { get; set; }
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
         public AutoResetEvent ItemAdded { get => itemAdded; }
+        public AutoResetEvent ItemTaken { get => itemTaken; }
         public BlockingQueue()
         {
-            this.boundedCapacity = 5000;
+            boundedCapacity = 5000;
             dataQueue = new Queue<T>();
             lockObject = new object();
             itemAdded = new AutoResetEvent(false);
             isEmpty = new AutoResetEvent(true);
+            IsCompleted = false;
         }
        
         public bool TryAdd(T item) 
         {
             bool result = false;
-            if (dataQueue.Count <= boundedCapacity)
+            if (!IsCompleted && dataQueue.Count <= boundedCapacity)
                 lock (lockObject)
                 {
                     dataQueue.Enqueue(item);
@@ -39,7 +43,6 @@ namespace DataCollection
                 }
             return result;            
         }
-
 
         public bool TryTake(out T item)
         {
@@ -50,7 +53,8 @@ namespace DataCollection
                 lock (lockObject)
                 {
                     item = dataQueue.Dequeue();
-                    result = true;                  
+                    result = true;
+                    itemTaken.Set();
                 }                              
             }
             return result;

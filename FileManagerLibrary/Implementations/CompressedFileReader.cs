@@ -96,7 +96,7 @@ namespace FileManagerLibrary.Implementations
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerator<DataBlock>)GetEnumerator());
+            return GetEnumerator();
         }
 
     }

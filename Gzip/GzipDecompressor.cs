@@ -18,15 +18,15 @@ namespace Gzip
 {
     public class GZipDecompressor: GZipper
     {
-        string pathFrom;
-        string pathTo;
-        FixedThreadPool.FixedThreadPool threadPool;
-        object fileReadLocker = new object();
-        BlockingDictionary dataDictionary;
-        long timeSummaryGZip = 0;
-        long timeSummaryWrite = 0;
-        object sumLocker = new object();
-        object sumWriteLocker = new object();
+        private string pathFrom;
+        private string pathTo;
+        private FixedThreadPool.FixedThreadPool threadPool;
+        private object fileReadLocker = new object();
+        private BlockingDictionary dataDictionary;
+        //private long timeSummaryGZip = 0;
+        //private long timeSummaryWrite = 0;
+        //private object sumLocker = new object();
+        //private object sumWriteLocker = new object();
         
         public GZipDecompressor(string pathFrom,string pathTo)
         {

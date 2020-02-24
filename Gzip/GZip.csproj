@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileDispatcher.cs" />
     <Compile Include="GZipper.cs" />
     <Compile Include="GZipCompressor.cs" />
     <Compile Include="Program.cs" />

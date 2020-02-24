@@ -5,10 +5,8 @@ using DataCollection;
 
 namespace FileManagerLibrary.Abstractions
 {
-    public interface IFileReader : IDisposable
+    public interface IFileReader : IDisposable, IEnumerable<DataBlock>
     {
-        bool EndOfFile { get; }
         int NumberOfBlocks { get; }
-        DataBlock ReadBlock();
     }
 }

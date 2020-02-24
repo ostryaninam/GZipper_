@@ -17,7 +17,7 @@ namespace Gzip
     public abstract class GZipper
     {
         protected IFileReader fileFrom;
-        protected IFileWriter fileTo;        
+        protected IFileWriter fileTo;
         protected CountdownEvent endSignal;
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
@@ -25,9 +25,7 @@ namespace Gzip
 
         protected abstract void GzipThreadWork();
 
-        protected abstract void WritingThreadWork();
-        
         protected abstract byte[] GZipOperation(byte[] inputBytes);
-        
+
     }
 }

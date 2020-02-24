@@ -25,8 +25,8 @@ namespace ExceptionsHandling
         }
         static void Stop()
         {
-            if (FixedThreadPool.FixedThreadPool.IsWorking)
-                FixedThreadPool.FixedThreadPool.GetInstance().Stop();
+            //if (FixedThreadPool.FixedThreadPool.IsStopping)
+            //    FixedThreadPool.FixedThreadPool.GetInstance().Stop();
         }
 
 
