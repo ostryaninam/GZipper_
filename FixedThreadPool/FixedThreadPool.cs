@@ -18,18 +18,19 @@ namespace FixedThreadPool
         private bool isDisposed;
         private object stoplock = new object();
         
-        private ConcurrentQueue<Task> tasks;
+        private ConcurrentQueue<Action> actions;
         private Dictionary<int, AutoResetEvent> wakeEvents;
         private Thread[] threads;                               
         private Thread managerThread;
 
         public int Count { get => threadsCount; }
         public static bool IsWorking { get => isWorking; }
-        private FixedThreadPool()
+        private FixedThreadPool(BlockingCollection<Action> actionQueue)
         {
+            actionQueue.
             threadsCount = Environment.ProcessorCount;
             wakeEvents = new Dictionary<int, AutoResetEvent>();
-            tasks = new ConcurrentQueue<Task>();
+            actions = new ConcurrentQueue<MyTask>();
             threads = new Thread[threadsCount];
             Start();
         }
@@ -59,7 +60,7 @@ namespace FixedThreadPool
             {
                 if (!isStopping)
                 {
-                    Task task = new Task(action);
+                    MyTask task = new MyTask(action);
                     AddAndStartNewTask(task);
                     return true;
                 }
@@ -84,16 +85,16 @@ namespace FixedThreadPool
                 }                
             }
         }
-        private bool Remove(out Task task)
+        private bool Remove(out MyTask task)
         {
-            bool result=tasks.TryDequeue(out task); 
-            if (tasks.Count > 0)  
+            bool result=actions.TryDequeue(out task); 
+            if (actions.Count > 0)  
                 managerEvent.Set();
             return result;
         }
-        private void AddAndStartNewTask(Task task)
+        private void AddAndStartNewTask(MyTask task)
         {
-            tasks.Enqueue(task);
+            actions.Enqueue(task);
             managerEvent.Set();
         }
         private void ManagerThreadWork()
@@ -113,7 +114,7 @@ namespace FixedThreadPool
             lock (stoplock)
             {
                 isStopping = true;
-                stopSignal = new CountdownEvent(tasks.Count);
+                stopSignal = new CountdownEvent(actions.Count);
             } 
             stopSignal.Wait();                              //wait for all tasks to end
             Dispose(true);

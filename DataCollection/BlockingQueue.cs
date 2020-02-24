@@ -7,72 +7,53 @@ using System.Threading;
 
 namespace DataCollection
 {
-    public class BlockingQueue
+    public class BlockingQueue<T>
     {
-        private Queue<DataBlock> dataQueue;
-        ManualResetEvent blockAdded;
-        ManualResetEvent blockTaken;
-        AutoResetEvent isEmpty;
+        private Queue<T> dataQueue;
+        private AutoResetEvent itemAdded;
+        private AutoResetEvent isEmpty;
         private int boundedCapacity;
         private object lockObject;
 
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
- 
+        public AutoResetEvent ItemAdded { get => itemAdded; }
         public BlockingQueue()
         {
             this.boundedCapacity = 5000;
-            dataQueue = new Queue<DataBlock>();
-            blockTaken = new ManualResetEvent(false);
+            dataQueue = new Queue<T>();
             lockObject = new object();
-            blockAdded = new ManualResetEvent(false);
+            itemAdded = new AutoResetEvent(false);
             isEmpty = new AutoResetEvent(true);
         }
        
-        public bool TryAdd(DataBlock block) 
+        public bool TryAdd(T item) 
         {
             bool result = false;
-            while (!result)
-            {
-                if (dataQueue.Count <= boundedCapacity)
-                    lock (lockObject)
-                    {
-                        dataQueue.Enqueue(block);
-                        result = true;
-                        blockAdded.Set();
-                        blockAdded.Reset();
-                    }
-                else
+            if (dataQueue.Count <= boundedCapacity)
+                lock (lockObject)
                 {
-                    blockTaken.WaitOne();
+                    dataQueue.Enqueue(item);
+                    result = true;
+                    itemAdded.Set();
                 }
-            }
-            return true;            
+            return result;            
         }
 
 
-        public bool TryTake(out DataBlock item)
+        public bool TryTake(out T item)
         {
             bool result = false;
-            item = null;
-            while (!result)
+            item = default(T);            
+            if (dataQueue.Count > 0)
             {
-                if (dataQueue.Count > 0)
+                lock (lockObject)
                 {
-                    lock (lockObject)
-                    {
-                        item = dataQueue.Dequeue();
-                        result = true;
-                        blockTaken.Set();
-                        blockTaken.Reset();
-                    }
-                }
-                else
-                {
-                    blockAdded.WaitOne();
-                }
+                    item = dataQueue.Dequeue();
+                    result = true;                  
+                }                              
             }
-            return true;
+            return result;
         }
 
     }
