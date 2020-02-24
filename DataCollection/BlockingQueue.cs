@@ -17,6 +17,8 @@ namespace DataCollection
         private object lockObject;
 
         public bool IsCompleted { get; set; }
+
+        public bool IsEmpty { get => dataQueue.Count==0; }
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
         public AutoResetEvent ItemAdded { get => itemAdded; }
@@ -48,7 +50,7 @@ namespace DataCollection
         {
             bool result = false;
             item = default(T);            
-            if (dataQueue.Count > 0)
+            if (!IsEmpty)
             {
                 lock (lockObject)
                 {

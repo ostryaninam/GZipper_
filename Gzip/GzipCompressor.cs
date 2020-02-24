@@ -13,7 +13,6 @@ using FileManagerLibrary.Implementations;
 using DataCollection;
 using ExceptionsHandling;
 using System.Diagnostics;
-using DataCollection;
 
 namespace Gzip
 {
@@ -32,9 +31,6 @@ namespace Gzip
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); 
             producingQueue = new BlockingQueue<DataBlock>();
             consumingQueue = new BlockingQueue<DataBlock>();
-            readyBlockEvent = new AutoResetEvent(false);
-            canWrite = new ManualResetEvent(false);
-            endSignal = new CountdownEvent(threadPool.Count);
         }
         public override void DoGZipWork()
         {
@@ -43,18 +39,7 @@ namespace Gzip
                 new CompressedFileFactory(pathTo).GetFileWriter());
             fileDispatcher.ReadBlocks(consumingQueue);
             fileDispatcher.WriteBlocks(producingQueue);
-            //{
-            //    fileTo.WriteInt32(fileFrom.NumberOfBlocks);
-            //    StartThreads();
-            //    endSignal.Wait();
-            //    Console.WriteLine("Успешно");
-            //}
-        }
-      
-        private void StartThreads()
-        {
-            for (int i = 0; i < threadPool.Count - 1; i++)
-                threadPool.Execute(() => GzipThreadWork());
+            GzipWork();
         }
 
         protected override byte[] GZipOperation(byte[] inputBytes)
@@ -85,19 +70,26 @@ namespace Gzip
             }
 
         }
-
-        protected override void GzipThreadWork()
+        protected override void GzipWork()
         {
-            while(!consumingQueue.IsCompleted && consumingQueue.Count>0)
+            while(!(consumingQueue.IsCompleted && consumingQueue.IsEmpty))
             {
-                DataBlock dataBlock = null;
-                if (consumingQueue.TryTake(out dataBlock))
+                if (!threadPool.IsStopping)
+                {
                     threadPool.Execute(() =>
                     {
-                        var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
-                        producingQueue.TryAdd(result);
-                    }
-                    );
+                        if (consumingQueue.TryTake(out var dataBlock))
+                        {
+                            var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
+                            if (!producingQueue.TryAdd(result))
+                                producingQueue.ItemTaken.WaitOne();
+                        }
+                        else
+                            producingQueue.ItemAdded.WaitOne();
+                    });
+                }
+                else
+                    break;
             }
         }
         //protected override void GzipThreadWork()

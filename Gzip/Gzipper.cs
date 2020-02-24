@@ -23,7 +23,7 @@ namespace Gzip
         protected ManualResetEvent canWrite;
         public abstract void DoGZipWork();
 
-        protected abstract void GzipThreadWork();
+        protected abstract void GzipWork();
 
         protected abstract byte[] GZipOperation(byte[] inputBytes);
 

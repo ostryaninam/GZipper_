@@ -12,12 +12,14 @@ namespace Gzip
     {
         private readonly IFileReader fileReader;
         private readonly IFileWriter fileWriter;
-        FixedThreadPool.FixedThreadPool threadPool;
+        private int numberOfBlocks;
+        private FixedThreadPool.FixedThreadPool threadPool;
         public FileDispatcher(IFileReader filereader, IFileWriter filewriter)
         {
             fileReader = filereader;
             fileWriter = filewriter;
             threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
+            numberOfBlocks = fileReader.NumberOfBlocks;
         }
 
         public void ReadBlocks(BlockingQueue<DataBlock> producingQueue)
@@ -36,6 +38,7 @@ namespace Gzip
                         else
                             break;
                     }
+                    producingQueue.IsCompleted = true;
                 }
             });
         }
@@ -47,7 +50,7 @@ namespace Gzip
                 using (fileWriter)
                 {
                     int writtenBlocks = 0;
-                    while (fileReader.NumberOfBlocks > writtenBlocks)
+                    while (writtenBlocks <= numberOfBlocks)
                     {
                         if (!threadPool.IsStopping)
                         {

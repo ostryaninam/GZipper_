@@ -18,7 +18,6 @@ namespace FixedThreadPool
         private object stoplock = new object();
         
         private BlockingQueue<Action> actions;
-        private Dictionary<int, AutoResetEvent> wakeEvents;
         private Thread[] threads;                               
 
         public int Count { get => threadsCount; }
@@ -29,7 +28,6 @@ namespace FixedThreadPool
         {
             actions = new BlockingQueue<Action>();
             threadsCount = Environment.ProcessorCount;
-            wakeEvents = new Dictionary<int, AutoResetEvent>();
             threads = new Thread[threadsCount];
             Start();
         }
@@ -63,8 +61,8 @@ namespace FixedThreadPool
         }
         private void ThreadWork()
         {
-            var sequel = true;
-            while (sequel)
+            var stop = false;
+            while (!stop)
             {                
                 if (actions.TryTake(out var action))         
                 {
@@ -72,7 +70,7 @@ namespace FixedThreadPool
                     {
                         if (isStopping)
                         {
-                            sequel = false;
+                            stop = true;
                             stopSignal.Signal();                            
                         }
                     }

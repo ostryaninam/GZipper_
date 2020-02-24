@@ -51,7 +51,7 @@ namespace Gzip
         private void StartThreads()
         {
             for (int i = 0; i < threadPool.Count - 1; i++)
-                threadPool.Execute(() => GzipThreadWork());
+                threadPool.Execute(() => GzipWork());
             threadPool.Execute(() => WritingThreadWork());
         }
         protected override byte[] GZipOperation(byte[] inputBytes)
@@ -86,7 +86,7 @@ namespace Gzip
                 throw;
             }
         }
-        protected override void GzipThreadWork()
+        protected override void GzipWork()
         {
             while (!fileFrom.EndOfFile)
             {
