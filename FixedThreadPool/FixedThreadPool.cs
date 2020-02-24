@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using DataCollection;
 
 namespace FixedThreadPool
 {
@@ -14,23 +15,20 @@ namespace FixedThreadPool
         private static bool isWorking;
         private bool isStopping;
         private CountdownEvent stopSignal;
-        private AutoResetEvent managerEvent;
         private bool isDisposed;
         private object stoplock = new object();
         
-        private ConcurrentQueue<Action> actions;
+        private BlockingQueue<Action> actions;
         private Dictionary<int, AutoResetEvent> wakeEvents;
         private Thread[] threads;                               
-        private Thread managerThread;
 
         public int Count { get => threadsCount; }
         public static bool IsWorking { get => isWorking; }
-        private FixedThreadPool(BlockingCollection<Action> actionQueue)
+        private FixedThreadPool()
         {
-            actionQueue.
+            actions = new BlockingQueue<Action>();
             threadsCount = Environment.ProcessorCount;
             wakeEvents = new Dictionary<int, AutoResetEvent>();
-            actions = new ConcurrentQueue<MyTask>();
             threads = new Thread[threadsCount];
             Start();
         }
@@ -42,9 +40,6 @@ namespace FixedThreadPool
         }
         private void Start()
         {
-            managerEvent = new AutoResetEvent(false);
-            managerThread = new Thread(ManagerThreadWork) { IsBackground = true };
-            managerThread.Start();
             for(int i = 0; i < threadsCount; i++)
             {
                 Thread thread = new Thread(ThreadWork) { IsBackground = true };
@@ -56,59 +51,35 @@ namespace FixedThreadPool
         }
         public bool Execute(Action action)
         {
+            bool result = false;
             lock (stoplock)
             {
                 if (!isStopping)
                 {
-                    MyTask task = new MyTask(action);
-                    AddAndStartNewTask(task);
-                    return true;
+                    result = (actions.TryAdd(action));                     
                 }
-                else
-                    return false;
             }
+            return result;
         }
         private void ThreadWork()
         {
-            while (true)
-            {
-                wakeEvents[Thread.CurrentThread.ManagedThreadId].WaitOne();
-
-                if (Remove(out var task))         
+            var sequel = true;
+            while (sequel)
+            {                
+                if (actions.TryTake(out var action))         
                 {
                     lock (stoplock)
                     {
                         if (isStopping)
-                            stopSignal.Signal();
+                        {
+                            sequel = false;
+                            stopSignal.Signal();                            
+                        }
                     }
-                    task.Execute();
+                    action();
                 }                
             }
         }
-        private bool Remove(out MyTask task)
-        {
-            bool result=actions.TryDequeue(out task); 
-            if (actions.Count > 0)  
-                managerEvent.Set();
-            return result;
-        }
-        private void AddAndStartNewTask(MyTask task)
-        {
-            actions.Enqueue(task);
-            managerEvent.Set();
-        }
-        private void ManagerThreadWork()
-        {
-            while (true)
-            {
-                managerEvent.WaitOne();
-                foreach (var t in wakeEvents.Values)    //free all tasks
-                {
-                    t.Set();
-                }
-            }
-        }
-
         public void Stop()                          
         {
             lock (stoplock)
@@ -119,28 +90,14 @@ namespace FixedThreadPool
             stopSignal.Wait();                              //wait for all tasks to end
             Dispose(true);
         }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                if (disposing)
-                {
-                    managerThread.Abort();
-                    managerEvent.Dispose();
-
-                    foreach (var th in threads)
-                    {
-                        th.Abort();
-                        wakeEvents[th.ManagedThreadId].Dispose();
-                    }
-                }
-                isDisposed = true;
-            }
-        }
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            lock (stoplock)
+            {
+                isStopping = true;
+                stopSignal = new CountdownEvent(actions.Count);
+            }
+            stopSignal.Wait();
         }
     }
 }
