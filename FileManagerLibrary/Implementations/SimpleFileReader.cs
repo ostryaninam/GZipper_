@@ -9,22 +9,38 @@ using System.Collections;
 
 namespace FileManagerLibrary.Implementations
 {
-    class SimpleFileReaderIEnumerator : IEnumerator<DataBlock>
+    class SimpleFileReader : IFileReader, IEnumerator<DataBlock>
     {
         private readonly FileStream fileStream;
         private readonly int blockSize;
         private long currentIndexOfBlock = 0;
-        public SimpleFileReaderIEnumerator(FileStream filestream, int blocksize)
+        private DataBlock currentBlock;
+
+        public bool EndOfFile => fileStream.Position >= fileStream.Length;
+        public DataBlock Current => currentBlock;
+        object IEnumerator.Current => currentBlock;
+        public int NumberOfBlocks { get; }
+
+        public SimpleFileReader(string path, int blockSize)
         {
-            fileStream = filestream;
-            blockSize = blocksize;
+            FileInfo fileInfo = new FileInfo(path);
+            try
+            {
+                fileStream = File.OpenRead(path);
+                this.blockSize = blockSize;
+                NumberOfBlocks = (int)(fileStream.Length / blockSize);
+                if (NumberOfBlocks == 0)
+                {
+                    ExceptionsHandler.Handle(this.GetType(), new FileSizeException());
+                }
+                if (fileStream.Length % blockSize != 0)
+                    NumberOfBlocks++;
+            }
+            catch (IOException e)
+            {
+                ExceptionsHandler.Handle(this.GetType(), e);
+            }
         }
-
-        public bool EndOfFile => (fileStream.Position >= fileStream.Length);
-        public DataBlock Current => ReadBlock();
-
-        object IEnumerator.Current => ReadBlock();
-
         public DataBlock ReadBlock()
         {
             byte[] fileBlock = new byte[blockSize];
@@ -50,48 +66,16 @@ namespace FileManagerLibrary.Implementations
             }
         }
 
-        public void Dispose()
-        {
-            
-        }
-
         public bool MoveNext()
         {
-            return EndOfFile;
+            this.currentBlock = ReadBlock();
+            return !EndOfFile;
         }
 
         public void Reset()
         {
             fileStream.Position = 0;
         }
-    }
-    class SimpleFileReader : IFileReader
-    {
-        private readonly FileStream fileStream;
-        private int numberOfBlocks = 0;
-        private readonly int blockSize;
-        public SimpleFileReader(string path, int blockSize)
-        {
-            FileInfo fileInfo = new FileInfo(path);
-            try
-            {
-                fileStream = File.OpenRead(path);
-                this.blockSize = blockSize;
-                numberOfBlocks = (int)(fileStream.Length / blockSize);
-                if (numberOfBlocks == 0)
-                {
-                    ExceptionsHandler.Handle(this.GetType(), new FileSizeException());
-                }
-                if (fileStream.Length % blockSize != 0)
-                    numberOfBlocks++;
-            }
-            catch (IOException e)
-            {
-                ExceptionsHandler.Handle(this.GetType(),e);
-            }
-        }
-
-        public int NumberOfBlocks => numberOfBlocks;
         
         public void Dispose()
         {
@@ -100,7 +84,7 @@ namespace FileManagerLibrary.Implementations
 
         public IEnumerator<DataBlock> GetEnumerator()
         {
-            return new SimpleFileReaderIEnumerator(fileStream, blockSize);
+            return (IEnumerator<DataBlock>)this;
         }
 
         IEnumerator IEnumerable.GetEnumerator()

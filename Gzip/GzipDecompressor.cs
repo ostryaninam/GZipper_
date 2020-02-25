@@ -38,7 +38,7 @@ namespace Gzip
             canWrite = new ManualResetEvent(false);
             endSignal = new CountdownEvent(threadPool.Count);
         }
-        public override void DoGZipWork()
+        public override void Start()
         {
             using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
                 using (fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())

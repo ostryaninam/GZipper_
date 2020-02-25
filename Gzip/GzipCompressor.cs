@@ -18,30 +18,37 @@ namespace Gzip
 {
     public class GZipCompressor : GZipper
     {
+        private int BLOCK_SIZE = 1024 * 1024;
         private FixedThreadPool.FixedThreadPool threadPool;
         private string pathFrom;
         private string pathTo;
-        private BlockingQueue<DataBlock> consumingQueue;
-        private BlockingQueue<DataBlock> producingQueue;
-        private BlocksProducer fileDispatcher;
+        private BlockingQueue<DataBlock> inputQueue;
+        private BlockingQueue<DataBlock> outputQueue;
         public GZipCompressor(string pathFromName ,string pathToName)
         {
-            pathFrom = pathFromName;
-            pathTo = pathToName;
-            threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); 
-            producingQueue = new BlockingQueue<DataBlock>();
-            consumingQueue = new BlockingQueue<DataBlock>();
+            this.pathFrom = pathFromName;   //TODO когда писать this
+            this.pathTo = pathToName;
+            this.threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); 
+            this.outputQueue = new BlockingQueue<DataBlock>();
+            this.inputQueue = new BlockingQueue<DataBlock>();
         }
-        public override void DoGZipWork()
+        public override void Start()
         {
-
-            fileDispatcher = new BlocksProducer(new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader(),
-                new CompressedFileFactory(pathTo).GetFileWriter());
-            fileDispatcher.ReadBlocks(consumingQueue);
-            fileDispatcher.WriteBlocks(producingQueue);
+            BlocksProducer blocksProducer = new BlocksProducer(
+                new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader(),
+                this.outputQueue);
+            BlocksConsumer blocksConsumer = new BlocksConsumer(
+                new CompressedFileFactory(pathTo).GetFileWriter(),
+                this.outputQueue);
+            blocksProducer.Start();
+            blocksConsumer.Start();
             GzipWork();
         }
 
+        private void StartThread()
+        {
+
+        }
         protected override byte[] GZipOperation(byte[] inputBytes)
         {
             return CompressBlock(inputBytes);
@@ -72,20 +79,20 @@ namespace Gzip
         }
         protected override void GzipWork()
         {
-            while(!(consumingQueue.IsCompleted && consumingQueue.IsEmpty))
+            while(!(inputQueue.IsCompleted && inputQueue.IsEmpty))
             {
                 if (!threadPool.IsStopping)
                 {
                     threadPool.Execute(() =>
                     {
-                        if (consumingQueue.TryTake(out var dataBlock))
+                        if (inputQueue.TryTake(out var dataBlock))
                         {
                             var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
-                            if (!producingQueue.TryAdd(result))
-                                producingQueue.CanAdd.WaitOne();
+                            if (!outputQueue.TryAdd(result))
+                                outputQueue.CanAdd.WaitOne();
                         }
                         else
-                            producingQueue.CanTake.WaitOne();
+                            outputQueue.CanTake.WaitOne();
                     });
                 }
                 else

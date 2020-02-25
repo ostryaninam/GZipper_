@@ -33,12 +33,12 @@ namespace Gzip
                 if (operation == "compress")
                 {
                     gZipper = new GZipCompressor(pathFrom, pathTo);
-                    gZipper.DoGZipWork();
+                    gZipper.Start();
                 }
                 if (operation == "decompress")
                 {
                     gZipper = new GZipDecompressor(pathFrom, pathTo);
-                    gZipper.DoGZipWork();
+                    gZipper.Start();
                 }
                 return 0;
             }

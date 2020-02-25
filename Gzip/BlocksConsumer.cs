@@ -24,13 +24,11 @@ namespace Gzip
             this.fileWriter = fileWriter;
             this.dataQueue = dataQueue;
         }
-
-        private void Start()
+        public void Start()
         {
             producingThread = new Thread(new ThreadStart(ThreadWork));
             producingThread.Start();
         }
-
         public void Stop()
         {
             stop = true;

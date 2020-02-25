@@ -24,7 +24,7 @@ namespace Gzip
             this.dataQueue = dataQueue;
         }
 
-        private void Start()
+        public void Start()
         {
             producingThread = new Thread(new ThreadStart(ThreadWork));
             producingThread.Start();

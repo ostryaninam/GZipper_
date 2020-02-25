@@ -26,9 +26,12 @@ namespace FixedThreadPool
 
         private FixedThreadPool()
         {
-            actions = new BlockingQueue<Action>();
-            threadsCount = Environment.ProcessorCount;
-            threads = new Thread[threadsCount];
+            this.actions = new BlockingQueue<Action>();
+            if (Environment.ProcessorCount > 2)
+                this.threadsCount = Environment.ProcessorCount - 2;
+            else
+                threadsCount = 1;
+            this.threads = new Thread[threadsCount];
             Start();
         }
         public static FixedThreadPool GetInstance()

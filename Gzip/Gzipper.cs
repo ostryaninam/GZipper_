@@ -21,10 +21,8 @@ namespace Gzip
         protected CountdownEvent endSignal;
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
-        public abstract void DoGZipWork();
-
+        public abstract void Start();
         protected abstract void GzipWork();
-
         protected abstract byte[] GZipOperation(byte[] inputBytes);
 
     }
