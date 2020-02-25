@@ -23,7 +23,7 @@ namespace Gzip
         private string pathTo;
         private BlockingQueue<DataBlock> consumingQueue;
         private BlockingQueue<DataBlock> producingQueue;
-        private FileDispatcher fileDispatcher;
+        private BlocksProducer fileDispatcher;
         public GZipCompressor(string pathFromName ,string pathToName)
         {
             pathFrom = pathFromName;
@@ -35,7 +35,7 @@ namespace Gzip
         public override void DoGZipWork()
         {
 
-            fileDispatcher = new FileDispatcher(new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader(),
+            fileDispatcher = new BlocksProducer(new SimpleFileFactory(pathFrom, 1024 * 1024).GetFileReader(),
                 new CompressedFileFactory(pathTo).GetFileWriter());
             fileDispatcher.ReadBlocks(consumingQueue);
             fileDispatcher.WriteBlocks(producingQueue);
@@ -82,10 +82,10 @@ namespace Gzip
                         {
                             var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
                             if (!producingQueue.TryAdd(result))
-                                producingQueue.ItemTaken.WaitOne();
+                                producingQueue.CanAdd.WaitOne();
                         }
                         else
-                            producingQueue.ItemAdded.WaitOne();
+                            producingQueue.CanTake.WaitOne();
                     });
                 }
                 else

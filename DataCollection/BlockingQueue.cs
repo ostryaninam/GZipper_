@@ -21,8 +21,8 @@ namespace DataCollection
         public bool IsEmpty { get => dataQueue.Count==0; }
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
-        public AutoResetEvent ItemAdded { get => itemAdded; }
-        public AutoResetEvent ItemTaken { get => itemTaken; }
+        public AutoResetEvent CanTake { get => itemAdded; }
+        public AutoResetEvent CanAdd { get => itemTaken; }
         public BlockingQueue()
         {
             boundedCapacity = 5000;
