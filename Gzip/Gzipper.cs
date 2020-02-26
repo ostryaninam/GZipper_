@@ -18,11 +18,11 @@ namespace Gzip
     {
         protected IFileReader fileFrom;
         protected IFileWriter fileTo;
-        protected CountdownEvent endSignal;
+        //protected CountdownEvent endSignal;
         protected AutoResetEvent readyBlockEvent;
         protected ManualResetEvent canWrite;
         public abstract void Start();
-        protected abstract void GzipWork();
+        protected abstract void ThreadWork();
         protected abstract byte[] GZipOperation(byte[] inputBytes);
 
     }

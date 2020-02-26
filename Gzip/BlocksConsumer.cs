@@ -9,15 +9,14 @@ using System.Threading.Tasks;
 
 namespace Gzip
 {
-    public class BlocksConsumer
+    public class BlocksConsumer : IErrorHandler, IStopProcess
     {
-        private int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
+        private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileWriter fileWriter;
         private BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
         private Thread producingThread;
-        private delegate void EventHandler(object sender, string message);
-        private event EventHandler ErrorOccured;
+        public event ErrorHandler ErrorOccured;
         public int CountOfBlocks { get; set; }
         public BlocksConsumer(IFileWriter fileWriter, BlockingQueue<DataBlock> dataQueue)
         {
@@ -33,6 +32,7 @@ namespace Gzip
         {
             stop = true;
             producingThread.Join();
+            fileWriter.Dispose();
         }
         public void ThreadWork()
         {

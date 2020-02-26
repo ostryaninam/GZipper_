@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 using FileManagerLibrary.Abstractions;
 using DataCollection;
 using System.Threading;
+using ExceptionsHandling;
 
 namespace Gzip
 {
-    public class BlocksProducer
+    public class BlocksProducer : IErrorHandler, IStopProcess
     {
-        private int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
+        private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileReader fileReader;
         private BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
         private Thread producingThread;
-        private delegate void EventHandler(object sender, string message);
-        private event EventHandler ErrorOccured;
+        public event ErrorHandler ErrorOccured;
         public BlocksProducer(IFileReader filereader, BlockingQueue<DataBlock> dataQueue)
         {
             this.fileReader = filereader;
@@ -34,6 +34,7 @@ namespace Gzip
         {
             stop = true;
             producingThread.Join();
+            fileReader.Dispose();
         }
         public void ThreadWork()
         {
@@ -55,7 +56,8 @@ namespace Gzip
                                     return;
                                 }
                         }
-
+                        ExceptionsHandler.Log($"Blocksproducer added block {block.Index} to queue /n");
+                        Console.WriteLine("Hello");
                     }
                     dataQueue.IsCompleted = true;
                 }

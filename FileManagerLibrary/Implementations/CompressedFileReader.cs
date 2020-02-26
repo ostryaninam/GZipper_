@@ -11,7 +11,6 @@ namespace FileManagerLibrary.Implementations
 {
     class CompressedFileReader : IFileReader, IEnumerator<DataBlock>
     {
-        private int numberOfBlocks;
         private readonly FileStream fileStream;
         private DataBlock currentBlock;
         public CompressedFileReader(FileStream filestream)
@@ -19,8 +18,15 @@ namespace FileManagerLibrary.Implementations
             this.fileStream = filestream;
         }
         public bool EndOfFile => fileStream.Position >= fileStream.Length;
+        public int NumberOfBlocks { get; }
         DataBlock IEnumerator<DataBlock>.Current => currentBlock;
         public object Current => currentBlock;
+
+        public CompressedFileReader(string path)
+        {
+            this.fileStream = File.OpenRead(path);
+            NumberOfBlocks = ReadNumberOfBlocks();
+        }
         public DataBlock ReadBlock()
         {
             var index = ReadIndex();
@@ -54,25 +60,11 @@ namespace FileManagerLibrary.Implementations
             this.fileStream.Position = 0;
         }
 
-        public CompressedFileReader(string path)
-        {
-            try
-            {
-                this.fileStream = new FileStream(path, FileMode.Open);
-                ReadNumberOfBlocks();
-            }
-            catch (IOException e)
-            {
-                ExceptionsHandler.Handle(this.GetType(),e);
-            }
-        }
-        public int NumberOfBlocks { get => numberOfBlocks; }
-
-        private void ReadNumberOfBlocks()
+        private int ReadNumberOfBlocks()
         {
             var byteNumberOfBlocks = new byte[4];
             this.fileStream.Read(byteNumberOfBlocks, 0, 4);
-            numberOfBlocks = BitConverter.ToInt32(byteNumberOfBlocks, 0);
+            return BitConverter.ToInt32(byteNumberOfBlocks, 0);
         }
 
         public void Dispose()

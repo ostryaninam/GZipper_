@@ -16,38 +16,64 @@ using System.Diagnostics;
 
 namespace Gzip
 {
-    public class GZipCompressor : GZipper
+    public class GZipCompressor : GZipper, IErrorHandler, IStopProcess
     {
-        private int BLOCK_SIZE = 1024 * 1024;
-        private FixedThreadPool.FixedThreadPool threadPool;
+        private const int BLOCK_SIZE = 1024 * 1024;
+        private const int WAIT_FOR_BLOCK_TIMEOUT = 500;
+        private const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 300;
+
         private string pathFrom;
         private string pathTo;
+        private bool isStopping = false;
         private BlockingQueue<DataBlock> inputQueue;
         private BlockingQueue<DataBlock> outputQueue;
+        private CountdownEvent threadsFinished;
+        private delegate void EventHandler(object sender, string message);
+        private List<IErrorHandler> errorHandlers;
+        public event ErrorHandler ErrorOccured;
         public GZipCompressor(string pathFromName ,string pathToName)
         {
             this.pathFrom = pathFromName;   //TODO когда писать this
-            this.pathTo = pathToName;
-            this.threadPool = FixedThreadPool.FixedThreadPool.GetInstance(); 
+            this.pathTo = pathToName;   //TODO readonly?
             this.outputQueue = new BlockingQueue<DataBlock>();
             this.inputQueue = new BlockingQueue<DataBlock>();
+            this.errorHandlers = new List<IErrorHandler>();
         }
         public override void Start()
         {
             BlocksProducer blocksProducer = new BlocksProducer(
                 new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader(),
-                this.outputQueue);
+                this.inputQueue);
             BlocksConsumer blocksConsumer = new BlocksConsumer(
                 new CompressedFileFactory(pathTo).GetFileWriter(),
                 this.outputQueue);
+            this.errorHandlers.Add(blocksProducer);
+            this.errorHandlers.Add(blocksConsumer);
+            this.errorHandlers.Add(this);
+            foreach (var handler in errorHandlers)
+                handler.ErrorOccured += ErrorHandling;
             blocksProducer.Start();
             blocksConsumer.Start();
-            GzipWork();
+            StartThreads();
         }
-
-        private void StartThread()
+        public void Stop()
         {
-
+            isStopping = true;
+            threadsFinished.Wait();
+        }
+        private void StartThreads()
+        {            
+            var threadsCount = 1;
+            if (Environment.ProcessorCount > 2)
+                threadsCount = Environment.ProcessorCount - 2;
+            this.threadsFinished = new CountdownEvent(threadsCount);
+            Thread[] threads = new Thread[threadsCount];
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i] = new Thread(new ThreadStart(ThreadWork));
+                threads[i].Start();
+            }
+            threadsFinished.Wait();
         }
         protected override byte[] GZipOperation(byte[] inputBytes)
         {
@@ -77,50 +103,55 @@ namespace Gzip
             }
 
         }
-        protected override void GzipWork()
+        protected override void ThreadWork()
         {
-            while(!(inputQueue.IsCompleted && inputQueue.IsEmpty))
+            while(!inputQueue.IsCompleted)
             {
-                if (!threadPool.IsStopping)
+                if (isStopping)
                 {
-                    threadPool.Execute(() =>
+                    threadsFinished.Signal();
+                    return;
+                }
+                long numOfBlock = 0;
+                if (inputQueue.TryTake(out var dataBlock))
+                {
+                    var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
+                    numOfBlock = result.Index;
+                    while (!outputQueue.TryAdd(result))
                     {
-                        if (inputQueue.TryTake(out var dataBlock))
-                        {
-                            var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
-                            if (!outputQueue.TryAdd(result))
-                                outputQueue.CanAdd.WaitOne();
-                        }
-                        else
-                            outputQueue.CanTake.WaitOne();
-                    });
+                        ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        $"trying add block {numOfBlock} to queue /n");
+                        while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
+                            if (isStopping)
+                            {
+                                threadsFinished.Signal();
+                                return;
+                            }
+                    }
+                    ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        $"added gzipped block {numOfBlock} to queue /n");
                 }
                 else
-                    break;
+                    outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);                                  
             }
+            threadsFinished.Signal();
+            ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        $"ended working /n");
         }
-        //protected override void GzipThreadWork()
-        //{
-        //    while (!fileFrom.EndOfFile)
-        //    {
-        //        DataBlock fileBlock = null;
-        //        DataBlock result = null;
-        //        try
-        //        {
-        //            lock (fileReadLocker)
-        //            {
-        //                fileBlock = fileFrom.ReadBlock();
-        //            }
-        //            result = new DataBlock(fileBlock.Index, GZipOperation(fileBlock.GetBlockBytes));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            ExceptionsHandler.Handle(this.GetType(), e);
-        //        }
-        //        producingQueue.TryAdd(result);
-        //    }
-        //    endSignal.Signal();
-        //}
+        private void StopAll()
+        {
+            foreach (var handler in errorHandlers)
+                ((IStopProcess)handler).Stop();
+        }
+        private void OnErrorOccured(string message)
+        {
+            ErrorOccured?.Invoke(this, message);
+        }
+        private void ErrorHandling(object sender, string message) //TODO доделать
+        {
+            StopAll();
+            Console.WriteLine(message);
+        }
 
     }
 }

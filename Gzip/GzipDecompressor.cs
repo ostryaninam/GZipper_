@@ -16,121 +16,121 @@ using DataCollection;
 
 namespace Gzip
 {
-    public class GZipDecompressor: GZipper
-    {
-        private string pathFrom;
-        private string pathTo;
-        private FixedThreadPool.FixedThreadPool threadPool;
-        private object fileReadLocker = new object();
-        private BlockingDictionary dataDictionary;
-        //private long timeSummaryGZip = 0;
-        //private long timeSummaryWrite = 0;
-        //private object sumLocker = new object();
-        //private object sumWriteLocker = new object();
+    //public class GZipDecompressor: GZipper
+    //{
+    //    private string pathFrom;
+    //    private string pathTo;
+    //    private FixedThreadPool.FixedThreadPool threadPool;
+    //    private object fileReadLocker = new object();
+    //    private BlockingDictionary dataDictionary;
+    //    //private long timeSummaryGZip = 0;
+    //    //private long timeSummaryWrite = 0;
+    //    //private object sumLocker = new object();
+    //    //private object sumWriteLocker = new object();
         
-        public GZipDecompressor(string pathFrom,string pathTo)
-        {
-            this.pathFrom = pathFrom;
-            this.pathTo = pathTo;
-            threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
-            dataDictionary = new BlockingDictionary();
-            readyBlockEvent = new AutoResetEvent(false);
-            canWrite = new ManualResetEvent(false);
-            endSignal = new CountdownEvent(threadPool.Count);
-        }
-        public override void Start()
-        {
-            using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
-                using (fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
-            {
-                StartThreads();
-                endSignal.Wait();
-                Console.WriteLine("Успешно");
-            }
-        }
-        private void StartThreads()
-        {
-            for (int i = 0; i < threadPool.Count - 1; i++)
-                threadPool.Execute(() => GzipWork());
-            threadPool.Execute(() => WritingThreadWork());
-        }
-        protected override byte[] GZipOperation(byte[] inputBytes)
-        {
-            return DecompressBlock(inputBytes);
-        }
+    //    public GZipDecompressor(string pathFrom,string pathTo)
+    //    {
+    //        this.pathFrom = pathFrom;
+    //        this.pathTo = pathTo;
+    //        threadPool = FixedThreadPool.FixedThreadPool.GetInstance();
+    //        dataDictionary = new BlockingDictionary();
+    //        readyBlockEvent = new AutoResetEvent(false);
+    //        canWrite = new ManualResetEvent(false);
+    //        endSignal = new CountdownEvent(threadPool.Count);
+    //    }
+    //    public override void Start()
+    //    {
+    //        using (fileFrom = new CompressedFileFactory(pathFrom).GetFileReader())
+    //            using (fileTo = new SimpleFileFactory(pathTo, 1024 * 1024).GetFileWriter())
+    //        {
+    //            StartThreads();
+    //            endSignal.Wait();
+    //            Console.WriteLine("Успешно");
+    //        }
+    //    }
+    //    private void StartThreads()
+    //    {
+    //        for (int i = 0; i < threadPool.Count - 1; i++)
+    //            threadPool.Execute(() => ThreadWork());
+    //        threadPool.Execute(() => WritingThreadWork());
+    //    }
+    //    protected override byte[] GZipOperation(byte[] inputBytes)
+    //    {
+    //        return DecompressBlock(inputBytes);
+    //    }
 
-        byte[] DecompressBlock(byte[] bytesToDecompress)
-        {
-            byte[] resultBytes = null;
-            try
-            {
-                using (MemoryStream streamFrom = new MemoryStream(bytesToDecompress))
-                {
-                    using (MemoryStream streamTo = new MemoryStream())
-                    {
-                        using (GZipStream gzipStream = new
-                            GZipStream(streamFrom, CompressionMode.Decompress))
-                        {
-                            gzipStream.CopyTo(streamTo);
-                            gzipStream.Flush();
-                        }
-                        resultBytes = streamTo.ToArray();
-                        streamTo.Flush();
-                    }
-                }
+    //    byte[] DecompressBlock(byte[] bytesToDecompress)
+    //    {
+    //        byte[] resultBytes = null;
+    //        try
+    //        {
+    //            using (MemoryStream streamFrom = new MemoryStream(bytesToDecompress))
+    //            {
+    //                using (MemoryStream streamTo = new MemoryStream())
+    //                {
+    //                    using (GZipStream gzipStream = new
+    //                        GZipStream(streamFrom, CompressionMode.Decompress))
+    //                    {
+    //                        gzipStream.CopyTo(streamTo);
+    //                        gzipStream.Flush();
+    //                    }
+    //                    resultBytes = streamTo.ToArray();
+    //                    streamTo.Flush();
+    //                }
+    //            }
 
-                return resultBytes;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-        protected override void GzipWork()
-        {
-            while (!fileFrom.EndOfFile)
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                DataBlock result = null;
-                DataBlock fileBlock = null;
-                stopwatch.Start();
-                try
-                {
-                    lock (fileReadLocker)
-                    {
-                        fileBlock = fileFrom.ReadBlock();
-                    }
-                    result = new DataBlock(fileBlock.Index, GZipOperation(fileBlock.GetBlockBytes));
-                }
-                catch (Exception e)
-                {
-                    ExceptionsHandler.Handle(this.GetType(), e);
-                }
-                dataDictionary.TryAdd(result.Index,result.GetBlockBytes);
+    //            return resultBytes;
+    //        }
+    //        catch (Exception)
+    //        {
+    //            throw;
+    //        }
+    //    }
+    //    protected override void ThreadWork()
+    //    {
+    //        while (!fileFrom.EndOfFile)
+    //        {
+    //            Stopwatch stopwatch = new Stopwatch();
+    //            DataBlock result = null;
+    //            DataBlock fileBlock = null;
+    //            stopwatch.Start();
+    //            try
+    //            {
+    //                lock (fileReadLocker)
+    //                {
+    //                    fileBlock = fileFrom.ReadBlock();
+    //                }
+    //                result = new DataBlock(fileBlock.Index, GZipOperation(fileBlock.GetBlockBytes));
+    //            }
+    //            catch (Exception e)
+    //            {
+    //                ExceptionsHandler.Handle(this.GetType(), e);
+    //            }
+    //            dataDictionary.TryAdd(result.Index,result.GetBlockBytes);
 
-            }
-            endSignal.Signal();
-        }
-        protected override void WritingThreadWork()
-        {
-            long writtenBlocks = 0;
-            for (int i=0; i< fileFrom.NumberOfBlocks; i++)
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-                dataDictionary.TryTake(i, out var block);                
-                fileTo.WriteBlock(new DataBlock(i,block));
-                writtenBlocks++;
+    //        }
+    //        endSignal.Signal();
+    //    }
+    //    protected override void WritingThreadWork()
+    //    {
+    //        long writtenBlocks = 0;
+    //        for (int i=0; i< fileFrom.NumberOfBlocks; i++)
+    //        {
+    //            Stopwatch stopwatch = new Stopwatch();
+    //            stopwatch.Start();
+    //            dataDictionary.TryTake(i, out var block);                
+    //            fileTo.WriteBlock(new DataBlock(i,block));
+    //            writtenBlocks++;
                
-                stopwatch.Stop();
-                lock (sumWriteLocker)
-                    timeSummaryWrite += stopwatch.ElapsedMilliseconds;
-                ExceptionsHandler.Log($"Writing thread " +
-                    $"wrote block number {i} in {stopwatch.ElapsedMilliseconds} ms");
-            }
-            ExceptionsHandler.Log($"Time on writing: {timeSummaryWrite}");
-            endSignal.Signal();
-        }
+    //            stopwatch.Stop();
+    //            lock (sumWriteLocker)
+    //                timeSummaryWrite += stopwatch.ElapsedMilliseconds;
+    //            ExceptionsHandler.Log($"Writing thread " +
+    //                $"wrote block number {i} in {stopwatch.ElapsedMilliseconds} ms");
+    //        }
+    //        ExceptionsHandler.Log($"Time on writing: {timeSummaryWrite}");
+    //        endSignal.Signal();
+    //    }
 
-    }
+    //}
 }

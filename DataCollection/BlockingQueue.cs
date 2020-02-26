@@ -9,27 +9,22 @@ namespace DataCollection
 {
     public class BlockingQueue<T>
     {
-        private Queue<T> dataQueue;
-        private AutoResetEvent itemAdded;
-        private AutoResetEvent itemTaken;
-        private AutoResetEvent isEmpty;
-        private int boundedCapacity;
-        private object lockObject;
+        private readonly ConcurrentQueue<T> dataQueue;
+        private readonly int boundedCapacity;
 
         public bool IsCompleted { get; set; }
 
-        public bool IsEmpty { get => dataQueue.Count==0; }
+        public bool IsEmpty => dataQueue.IsEmpty; 
         public int BoundedCapacity { get => boundedCapacity; }
         public int Count => dataQueue.Count;
-        public AutoResetEvent CanTake { get => itemAdded; }
-        public AutoResetEvent CanAdd { get => itemTaken; }
+        public AutoResetEvent CanTake { get; }
+        public AutoResetEvent CanAdd { get; }
         public BlockingQueue()
         {
             boundedCapacity = 5000;
-            dataQueue = new Queue<T>();
-            lockObject = new object();
-            itemAdded = new AutoResetEvent(false);
-            isEmpty = new AutoResetEvent(true);
+            dataQueue = new ConcurrentQueue<T>();
+            CanTake = new AutoResetEvent(false);
+            CanAdd = new AutoResetEvent(true);
             IsCompleted = false;
         }
        
@@ -37,28 +32,23 @@ namespace DataCollection
         {
             bool result = false;
             if (!IsCompleted && dataQueue.Count <= boundedCapacity)
-                lock (lockObject)
-                {
-                    dataQueue.Enqueue(item);
-                    result = true;
-                    itemAdded.Set();
-                }
+            {
+                dataQueue.Enqueue(item);
+                result = true;
+                CanTake.Set();
+            }
             return result;            
         }
 
         public bool TryTake(out T item)
         {
             bool result = false;
-            item = default(T);            
+            item = default(T);
             if (!IsEmpty)
-            {
-                lock (lockObject)
-                {
-                    item = dataQueue.Dequeue();
-                    result = true;
-                    itemTaken.Set();
-                }                              
-            }
+            {                 
+                result = dataQueue.TryDequeue(out item);
+                CanAdd.Set();
+            }                              
             return result;
         }
 
