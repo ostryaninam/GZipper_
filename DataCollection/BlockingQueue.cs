@@ -21,7 +21,7 @@ namespace DataCollection
         public AutoResetEvent CanAdd { get; }
         public BlockingQueue()
         {
-            boundedCapacity = 5000;
+            boundedCapacity = 7000;
             dataQueue = new ConcurrentQueue<T>();
             CanTake = new AutoResetEvent(false);
             CanAdd = new AutoResetEvent(true);

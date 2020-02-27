@@ -34,7 +34,7 @@ namespace Gzip
         public GZipCompressor(string pathFromName ,string pathToName)
         {
             this.pathFrom = pathFromName;   //TODO когда писать this
-            this.pathTo = pathToName;   //TODO readonly?
+            this.pathTo = pathToName;   
             this.outputQueue = new BlockingQueue<DataBlock>();
             this.inputQueue = new BlockingQueue<DataBlock>();
             this.errorHandlers = new List<IErrorHandler>();
@@ -58,6 +58,7 @@ namespace Gzip
         }
         public void Stop()
         {
+            ExceptionsHandler.Log("Trying to stop compressor");
             isStopping = true;
             threadsFinished.Wait();
         }
@@ -74,6 +75,7 @@ namespace Gzip
                 threads[i].Start();
             }
             threadsFinished.Wait();
+            outputQueue.IsCompleted = true;
         }
         protected override byte[] GZipOperation(byte[] inputBytes)
         {
@@ -105,43 +107,62 @@ namespace Gzip
         }
         protected override void ThreadWork()
         {
-            while(!inputQueue.IsCompleted)
+            try
             {
-                if (isStopping)
+                while (!(inputQueue.IsCompleted && inputQueue.IsEmpty))
                 {
-                    threadsFinished.Signal();
-                    return;
-                }
-                long numOfBlock = 0;
-                if (inputQueue.TryTake(out var dataBlock))
-                {
-                    var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
-                    numOfBlock = result.Index;
-                    while (!outputQueue.TryAdd(result))
+                    if (isStopping)
                     {
-                        ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
-                        $"trying add block {numOfBlock} to queue /n");
-                        while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
-                            if (isStopping)
-                            {
-                                threadsFinished.Signal();
-                                return;
-                            }
+                        threadsFinished.Signal();
+                        return;
                     }
-                    ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
-                        $"added gzipped block {numOfBlock} to queue /n");
+                    long numOfBlock = 0;
+                    if (inputQueue.TryTake(out var dataBlock))
+                    {
+                        var result = new DataBlock(dataBlock.Index, GZipOperation(dataBlock.GetBlockBytes));
+                        numOfBlock = result.Index;
+                        while (!outputQueue.TryAdd(result))
+                        {
+                            ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            $"trying add block {numOfBlock} to queue");
+                            while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
+                                if (isStopping)
+                                {
+                                    threadsFinished.Signal();
+                                    return;
+                                }
+                        }
+                        ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            $"added gzipped block {numOfBlock} to queue");
+                    }
+                    else
+                    {
+                        ExceptionsHandler.Log($"Thread {Thread.CurrentThread.ManagedThreadId} " +
+                            $"waiting for cantake signal");
+                        outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
+                    }
                 }
-                else
-                    outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);                                  
+                threadsFinished.Signal();
             }
-            threadsFinished.Signal();
+            catch (Exception ex)
+            {
+                OnErrorOccured(ex.Message);
+            }
+
             ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
-                        $"ended working /n");
+                        $"ended working");
         }
         private void StopAll()
         {
-            foreach (var handler in errorHandlers)
-                ((IStopProcess)handler).Stop();
+            Thread stoppingThread = new Thread(new ThreadStart(() =>
+            {
+                foreach (var handler in errorHandlers)
+                {
+                    ((IStopProcess)handler).Stop();
+                    ExceptionsHandler.Log("Stopped one of handlers");
+                }
+            }));
+            stoppingThread.Start();
         }
         private void OnErrorOccured(string message)
         {
@@ -149,8 +170,8 @@ namespace Gzip
         }
         private void ErrorHandling(object sender, string message) //TODO доделать
         {
+            ExceptionsHandler.Log($"Error in {sender}: {message}");
             StopAll();
-            Console.WriteLine(message);
         }
 
     }

@@ -16,7 +16,7 @@ namespace Gzip
         private readonly IFileReader fileReader;
         private BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
-        private Thread producingThread;
+        public Thread producingThread;
         public event ErrorHandler ErrorOccured;
         public BlocksProducer(IFileReader filereader, BlockingQueue<DataBlock> dataQueue)
         {
@@ -27,13 +27,15 @@ namespace Gzip
         public void Start()
         {
             producingThread = new Thread(new ThreadStart(ThreadWork));
+            ErrorOccured += (sender, message) => ExceptionsHandler.Log(message);
             producingThread.Start();
         }
 
         public void Stop()
         {
             stop = true;
-            producingThread.Join();
+            if (producingThread.IsAlive)
+                producingThread.Join();
             fileReader.Dispose();
         }
         public void ThreadWork()
@@ -50,14 +52,18 @@ namespace Gzip
                         }
                         while (!dataQueue.TryAdd(block))
                         {
+                            ExceptionsHandler.Log($"Blocksproducer trying to add block {block.Index} to queue");
                             while (!dataQueue.CanAdd.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
+                            {
+                                ExceptionsHandler.Log($"Blocksproducer waiting for canadd signal" +
+                                    $" {block.Index} to queue");
                                 if (stop)
                                 {
                                     return;
                                 }
+                            }
                         }
-                        ExceptionsHandler.Log($"Blocksproducer added block {block.Index} to queue /n");
-                        Console.WriteLine("Hello");
+                        ExceptionsHandler.Log($"Blocksproducer added block {block.Index} to queue");
                     }
                     dataQueue.IsCompleted = true;
                 }

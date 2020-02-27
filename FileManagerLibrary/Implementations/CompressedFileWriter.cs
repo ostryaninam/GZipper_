@@ -14,14 +14,7 @@ namespace FileManagerLibrary.Implementations
         FileStream fileStream;
         public CompressedFileWriter(string path)
         {
-            try
-            {
-                fileStream = new FileStream(path, FileMode.Create);
-            }
-            catch (IOException e)
-            {
-                ExceptionsHandler.Handle(this.GetType(),e);
-            }
+            fileStream = new FileStream(path, FileMode.Create);
         }
         private void WriteIndex(long value)
         {

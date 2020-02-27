@@ -8,15 +8,16 @@ namespace Tests
     [TestClass]
     public class FileReadersTests
     {
-        //[TestMethod]
+       //[TestMethod] ok
         public void TestSimpleFileReader()
         {
-            var reader = new SimpleFileFactory(@"C:\mults\Tangled.mkv", 1024 * 1024).GetFileReader();
-            var count = 1;
+            var reader = new SimpleFileFactory(@"C:\mults\Tangled.mkv", 1024*1024).GetFileReader();
+            var count = 0;
             using (reader)
             {
                 foreach (var block in reader)
-                {
+                {                    
+                    Console.WriteLine($"Block number {block.Index}");
                     count++;
                 }
             }

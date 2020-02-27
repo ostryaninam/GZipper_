@@ -19,13 +19,18 @@ namespace Tests
                 new CompressedFileFactory(@"C:\mults\Tangled1.gz").GetFileWriter(),
                 new BlockingQueue<DataBlock>());
         }
-        //[TestMethod]
+        //[TestMethod] 
         public void TestBlocksProducer()
         {
+            var reader = new SimpleFileFactory(@"C:\mults\Tangled.mkv", 1024*1024).GetFileReader();
             Gzip.BlocksProducer blocksProducer = new Gzip.BlocksProducer(
-                new SimpleFileFactory(@"C:\mults\Tangled.mkv", 1024 * 1024).GetFileReader(),
+                reader,
                 new BlockingQueue<DataBlock>()
                 );
+            ExceptionsHandling.ExceptionsHandler.Log($"Count of blocks: {reader.NumberOfBlocks}");
+                
+            blocksProducer.Start();
+            blocksProducer.producingThread.Join();
         }
     }
 }

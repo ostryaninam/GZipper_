@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ExceptionsHandling;
 
 namespace Gzip
 {
@@ -15,9 +16,8 @@ namespace Gzip
         private readonly IFileWriter fileWriter;
         private BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
-        private Thread producingThread;
+        private Thread consumingThread;
         public event ErrorHandler ErrorOccured;
-        public int CountOfBlocks { get; set; }
         public BlocksConsumer(IFileWriter fileWriter, BlockingQueue<DataBlock> dataQueue)
         {
             this.fileWriter = fileWriter;
@@ -25,49 +25,47 @@ namespace Gzip
         }
         public void Start()
         {
-            producingThread = new Thread(new ThreadStart(ThreadWork));
-            producingThread.Start();
+            consumingThread = new Thread(new ThreadStart(ThreadWork));
+            consumingThread.Start();
         }
         public void Stop()
         {
             stop = true;
-            producingThread.Join();
+            if (consumingThread.IsAlive)
+                consumingThread.Join();
             fileWriter.Dispose();
         }
         public void ThreadWork()
         {
-            if (CountOfBlocks != 0)
+            try
             {
-                try
+                using (fileWriter)
                 {
-                    using (fileWriter)
+                    while (!(dataQueue.IsEmpty && dataQueue.IsCompleted))
                     {
-                        int writtenBlocks = 0;
-                        while (writtenBlocks <= CountOfBlocks)
+                        if (stop)
                         {
-                            if (stop)
-                            {
-                                return;
-                            }
-                            DataBlock block = null;
-                            while(!dataQueue.TryTake(out block))
-                            {
-                                while(!dataQueue.CanTake.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
-                                    if (stop)
-                                    {
-                                        return;
-                                    }
-                            }
-                            fileWriter.WriteBlock(block);
-                            writtenBlocks++;                                                      
+                            return;
                         }
+                        DataBlock block = null;
+                        while (!dataQueue.TryTake(out block))
+                        {
+                            while (!dataQueue.CanTake.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
+                                if (stop)
+                                {
+                                    return;
+                                }
+                        }
+                        fileWriter.WriteBlock(block);
+                        ExceptionsHandler.Log($"Blocksconsumer wrote block {block.Index}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    OnErrorOccured(this, ex.Message);
-                } 
             }
+            catch (Exception ex)
+            {
+                OnErrorOccured(this, ex.StackTrace);
+            } 
+            
         }
         private void OnErrorOccured(object sender, string message)
         {

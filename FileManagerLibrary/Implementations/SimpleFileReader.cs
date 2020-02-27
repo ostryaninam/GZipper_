@@ -15,12 +15,10 @@ namespace FileManagerLibrary.Implementations
         private readonly int blockSize;
         private long currentIndexOfBlock = 0;
         private DataBlock currentBlock;
-
-        public bool EndOfFile => fileStream.Position >= fileStream.Length;
+        public bool EndOfFile => currentIndexOfBlock > NumberOfBlocks;
         public DataBlock Current => currentBlock;
         object IEnumerator.Current => currentBlock;
         public int NumberOfBlocks { get; }
-
         public SimpleFileReader(string path, int blockSize)
         {
             FileInfo fileInfo = new FileInfo(path);
@@ -58,7 +56,6 @@ namespace FileManagerLibrary.Implementations
                     fileStream.Read(fileBlock, 0, (int)(fileStream.Length - fileStream.Position));
                     return new DataBlock(index, fileBlock);
                 }
-
             }
             else
             {
