@@ -29,14 +29,14 @@ namespace FileManagerLibrary.Implementations
                 NumberOfBlocks = (int)(fileStream.Length / blockSize);
                 if (NumberOfBlocks == 0)
                 {
-                    ExceptionsHandler.Handle(this.GetType(), new FileSizeException());
+                    Logger.Handle(this.GetType(), new FileSizeException());
                 }
                 if (fileStream.Length % blockSize != 0)
                     NumberOfBlocks++;
             }
             catch (IOException e)
             {
-                ExceptionsHandler.Handle(this.GetType(), e);
+                Logger.Handle(this.GetType(), e);
             }
         }
         public DataBlock ReadBlock()

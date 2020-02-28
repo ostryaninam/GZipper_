@@ -11,42 +11,42 @@ namespace Gzip
     {
         static int Main(string[] args)
         {
-            //string pathFrom = "";
-            //string pathTo = "";
-            //string operation = "";
-            //string[] instructions = args;
-            //GZipper gZipper = null;
-            //if (instructions.Length == 3 &&
-            //    (instructions[0] == "compress" || instructions[0] == "decompress"))
-            //{
-            //    operation = instructions[0];
-            //    pathFrom = instructions[1];
-            //    pathTo = instructions[2];
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Неверный формат ввода");
-            //    return -1;
-            //}
-            //if (CheckExtensions(pathFrom, pathTo))
-            //{
-            //    if (operation == "compress")
-            //    {
-            //        gZipper = new GZipCompressor(pathFrom, pathTo);
-            //        gZipper.Start();
-            //    }
-            //    if (operation == "decompress")
-            //    {
-            //        gZipper = new GZipDecompressor(pathFrom, pathTo);
-            //        gZipper.Start();
-            //    }
-            //    return 0;
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Неверный формат входного/выходного файла");
-            //    return -1;
-            //}
+            string pathFrom = "";
+            string pathTo = "";
+            string operation = "";
+            string[] instructions = args;
+            GZipper gZipper = null;
+            if (instructions.Length == 3 &&
+                (instructions[0] == "compress" || instructions[0] == "decompress"))
+            {
+                operation = instructions[0];
+                pathFrom = instructions[1];
+                pathTo = instructions[2];
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат ввода");
+                return -1;
+            }
+            if (CheckExtensions(pathFrom, pathTo))
+            {
+                if (operation == "compress")
+                {
+                    gZipper = new GZipCompressor(pathFrom, pathTo);
+                    gZipper.Start();
+                }
+                //if (operation == "decompress")
+                //{
+                //    gZipper = new GZipDecompressor(pathFrom, pathTo);
+                //    gZipper.Start();
+                //}
+                return 0;
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат входного/выходного файла");
+                return -1;
+            }
             return 0;
 
         }

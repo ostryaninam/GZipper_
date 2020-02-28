@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileManagerLibrary", "FileM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixedThreadPool", "FixedThreadPool\FixedThreadPool.csproj", "{F88C5C55-2850-47E5-9DED-EC263E9633A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExceptionsHandling", "ExceptionsHandling\ExceptionsHandling.csproj", "{A9F58470-F804-4A81-9192-15AAA03EEBB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "ExceptionsHandling\Logging.csproj", "{A9F58470-F804-4A81-9192-15AAA03EEBB4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataCollection", "DataCollection\DataCollection.csproj", "{894766A7-CC71-4FEA-96EE-7ADB22483220}"
 EndProject

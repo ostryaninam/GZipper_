@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataCollection\DataCollection.csproj" />
-    <ProjectReference Include="..\ExceptionsHandling\ExceptionsHandling.csproj" />
+    <ProjectReference Include="..\ExceptionsHandling\Logging.csproj" />
   </ItemGroup>
 
 </Project>

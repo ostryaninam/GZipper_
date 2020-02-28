@@ -4,10 +4,10 @@ using NLog.Config;
 
 namespace ExceptionsHandling
 {
-    public static class ExceptionsHandler
+    public static class Logger
     {
-        private static Logger logger;
-        static ExceptionsHandler()
+        private static NLog.Logger logger;
+        static Logger()
         {
             LogManager.Configuration = new XmlLoggingConfiguration("NLog.config");
             logger = LogManager.GetCurrentClassLogger();

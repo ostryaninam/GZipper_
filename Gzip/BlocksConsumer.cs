@@ -57,7 +57,7 @@ namespace Gzip
                                 }
                         }
                         fileWriter.WriteBlock(block);
-                        ExceptionsHandler.Log($"Blocksconsumer wrote block {block.Index}");
+                        Logger.Log($"Blocksconsumer wrote block {block.Index}");
                     }
                 }
             }

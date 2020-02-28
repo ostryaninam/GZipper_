@@ -27,7 +27,7 @@ namespace Gzip
         public void Start()
         {
             producingThread = new Thread(new ThreadStart(ThreadWork));
-            ErrorOccured += (sender, message) => ExceptionsHandler.Log(message);
+            ErrorOccured += (sender, message) => Logger.Log(message);
             producingThread.Start();
         }
 
@@ -52,10 +52,10 @@ namespace Gzip
                         }
                         while (!dataQueue.TryAdd(block))
                         {
-                            ExceptionsHandler.Log($"Blocksproducer trying to add block {block.Index} to queue");
+                            Logger.Log($"Blocksproducer trying to add block {block.Index} to queue");
                             while (!dataQueue.CanAdd.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
                             {
-                                ExceptionsHandler.Log($"Blocksproducer waiting for canadd signal" +
+                                Logger.Log($"Blocksproducer waiting for canadd signal" +
                                     $" {block.Index} to queue");
                                 if (stop)
                                 {
@@ -63,7 +63,7 @@ namespace Gzip
                                 }
                             }
                         }
-                        ExceptionsHandler.Log($"Blocksproducer added block {block.Index} to queue");
+                        Logger.Log($"Blocksproducer added block {block.Index} to queue");
                     }
                     dataQueue.IsCompleted = true;
                 }

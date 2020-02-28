@@ -57,8 +57,8 @@ namespace Gzip
             StartThreads();
         }
         public void Stop()
-        {
-            ExceptionsHandler.Log("Trying to stop compressor");
+        {            
+            Logger.Log("Trying to stop compressor");
             isStopping = true;
             threadsFinished.Wait();
         }
@@ -123,7 +123,7 @@ namespace Gzip
                         numOfBlock = result.Index;
                         while (!outputQueue.TryAdd(result))
                         {
-                            ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"trying add block {numOfBlock} to queue");
                             while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
                                 if (isStopping)
@@ -132,12 +132,12 @@ namespace Gzip
                                     return;
                                 }
                         }
-                        ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"added gzipped block {numOfBlock} to queue");
                     }
                     else
                     {
-                        ExceptionsHandler.Log($"Thread {Thread.CurrentThread.ManagedThreadId} " +
+                        Logger.Log($"Thread {Thread.CurrentThread.ManagedThreadId} " +
                             $"waiting for cantake signal");
                         outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
                     }
@@ -149,7 +149,7 @@ namespace Gzip
                 OnErrorOccured(ex.Message);
             }
 
-            ExceptionsHandler.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+            Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                         $"ended working");
         }
         private void StopAll()
@@ -159,7 +159,7 @@ namespace Gzip
                 foreach (var handler in errorHandlers)
                 {
                     ((IStopProcess)handler).Stop();
-                    ExceptionsHandler.Log("Stopped one of handlers");
+                    Logger.Log("Stopped one of handlers");
                 }
             }));
             stoppingThread.Start();
@@ -170,7 +170,7 @@ namespace Gzip
         }
         private void ErrorHandling(object sender, string message) //TODO доделать
         {
-            ExceptionsHandler.Log($"Error in {sender}: {message}");
+            Logger.Log($"Error in {sender}: {message}");
             StopAll();
         }
 

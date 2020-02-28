@@ -27,7 +27,7 @@ namespace Tests
                 reader,
                 new BlockingQueue<DataBlock>()
                 );
-            ExceptionsHandling.ExceptionsHandler.Log($"Count of blocks: {reader.NumberOfBlocks}");
+            ExceptionsHandling.Logger.Log($"Count of blocks: {reader.NumberOfBlocks}");
                 
             blocksProducer.Start();
             blocksProducer.producingThread.Join();

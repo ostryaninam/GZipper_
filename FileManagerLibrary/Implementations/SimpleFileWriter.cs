@@ -20,7 +20,7 @@ namespace FileManagerLibrary.Implementations
             }
             catch(IOException e)
             {
-                ExceptionsHandler.Handle(this.GetType(), e);
+                Logger.Handle(this.GetType(), e);
             }
         }
 
