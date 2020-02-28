@@ -14,7 +14,7 @@ namespace Gzip
     {
         private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileWriter fileWriter;
-        private BlockingQueue<DataBlock> dataQueue;
+        private readonly BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
         private Thread consumingThread;
         public event ErrorHandler ErrorOccured;
@@ -63,13 +63,13 @@ namespace Gzip
             }
             catch (Exception ex)
             {
-                OnErrorOccured(this, ex.StackTrace);
+                OnErrorOccured(ex);
             } 
             
         }
-        private void OnErrorOccured(object sender, string message)
+        private void OnErrorOccured(Exception ex)
         {
-            ErrorOccured?.Invoke(sender, message);
+            this.ErrorOccured?.Invoke(this, ex);
         }
     }
 }

@@ -25,29 +25,36 @@ namespace Gzip
             }
             else
             {
-                Console.WriteLine("Неверный формат ввода");
+                Console.WriteLine("Wrong input file format");
                 return -1;
             }
             if (CheckExtensions(pathFrom, pathTo))
             {
-                if (operation == "compress")
+                try
                 {
-                    gZipper = new GZipCompressor(pathFrom, pathTo);
-                    gZipper.Start();
+                    if (operation == "compress")
+                    {
+                        gZipper = new GZipCompressor(pathFrom, pathTo);
+                        gZipper.Start();
+                    }
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return -1;
                 }
                 //if (operation == "decompress")
                 //{
                 //    gZipper = new GZipDecompressor(pathFrom, pathTo);
                 //    gZipper.Start();
-                //}
+                //}            
                 return 0;
             }
             else
             {
-                Console.WriteLine("Неверный формат входного/выходного файла");
+                Console.WriteLine("Wrong input/output file format");
                 return -1;
             }
-            return 0;
 
         }
         static bool CheckExtensions(string pathFrom, string pathTo)                             

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Gzip
 {
-    public delegate void ErrorHandler(object sender, string message);
+    public delegate void ErrorHandler(object sender, Exception ex);
     public interface IErrorHandler
     {
         event ErrorHandler ErrorOccured;

@@ -19,8 +19,8 @@ namespace Gzip
     public class GZipCompressor : GZipper, IErrorHandler, IStopProcess
     {
         private const int BLOCK_SIZE = 1024 * 1024;
-        private const int WAIT_FOR_BLOCK_TIMEOUT = 500;
-        private const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 300;
+        private const int WAIT_FOR_BLOCK_TIMEOUT = 100;
+        private const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 100;
 
         private string pathFrom;
         private string pathTo;
@@ -146,7 +146,7 @@ namespace Gzip
             }
             catch (Exception ex)
             {
-                OnErrorOccured(ex.Message);
+                OnErrorOccured(ex);
             }
 
             Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
@@ -159,19 +159,20 @@ namespace Gzip
                 foreach (var handler in errorHandlers)
                 {
                     ((IStopProcess)handler).Stop();
-                    Logger.Log("Stopped one of handlers");
                 }
             }));
             stoppingThread.Start();
         }
-        private void OnErrorOccured(string message)
+        private void OnErrorOccured(Exception ex)
         {
-            ErrorOccured?.Invoke(this, message);
+            this.ErrorOccured?.Invoke(this, ex);
         }
-        private void ErrorHandling(object sender, string message) //TODO доделать
+        private void ErrorHandling(object sender, Exception ex) 
         {
-            Logger.Log($"Error in {sender}: {message}");
+            Logger.Log($"Error in {sender}: {ex.Message}"); 
             StopAll();
+            Exception mainException = new Exception($"Exception in {sender}: {ex.Message}");
+            throw mainException;
         }
 
     }

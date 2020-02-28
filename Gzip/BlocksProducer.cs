@@ -27,7 +27,6 @@ namespace Gzip
         public void Start()
         {
             producingThread = new Thread(new ThreadStart(ThreadWork));
-            ErrorOccured += (sender, message) => Logger.Log(message);
             producingThread.Start();
         }
 
@@ -70,12 +69,12 @@ namespace Gzip
             }
             catch(Exception ex)
             {
-                OnErrorOccured(this, ex.Message);
+                OnErrorOccured(ex);
             }
         }
-        private void OnErrorOccured(object sender,string message)
+        private void OnErrorOccured(Exception ex)
         {
-            ErrorOccured?.Invoke(sender, message);
+            this.ErrorOccured?.Invoke(this, ex);
         }
       
     }
