@@ -60,10 +60,6 @@
       <Project>{894766a7-cc71-4fea-96ee-7adb22483220}</Project>
       <Name>DataCollection</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ExceptionsHandling\Logging.csproj">
-      <Project>{a9f58470-f804-4a81-9192-15aaa03eebb4}</Project>
-      <Name>Logging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\FileManagerLibrary\FileManagerLibrary.csproj">
       <Project>{3639a60a-af85-482e-946f-ea99cbcef00d}</Project>
       <Name>FileManagerLibrary</Name>

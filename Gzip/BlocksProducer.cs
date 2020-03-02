@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using FileManagerLibrary.Abstractions;
 using DataCollection;
 using System.Threading;
-using ExceptionsHandling;
+using NLog;
 
 namespace Gzip
 {
     public class BlocksProducer : IErrorHandler, IStopProcess
     {
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
         private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileReader fileReader;
         private BlockingQueue<DataBlock> dataQueue;
@@ -51,10 +53,10 @@ namespace Gzip
                         }
                         while (!dataQueue.TryAdd(block))
                         {
-                            Logger.Log($"Blocksproducer trying to add block {block.Index} to queue");
+                            logger.Info($"Blocksproducer trying to add block {block.Index} to queue");
                             while (!dataQueue.CanAdd.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
                             {
-                                Logger.Log($"Blocksproducer waiting for canadd signal" +
+                                logger.Info($"Blocksproducer waiting for canadd signal" +
                                     $" {block.Index} to queue");
                                 if (stop)
                                 {
@@ -62,7 +64,7 @@ namespace Gzip
                                 }
                             }
                         }
-                        Logger.Log($"Blocksproducer added block {block.Index} to queue");
+                        logger.Info($"Blocksproducer added block {block.Index} to queue");
                     }
                     dataQueue.IsCompleted = true;
                 }

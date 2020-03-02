@@ -11,13 +11,15 @@ using System.Threading.Tasks;
 using FileManagerLibrary.Abstractions;
 using FileManagerLibrary.Implementations;
 using DataCollection;
-using ExceptionsHandling;
 using System.Diagnostics;
+using NLog;
 
 namespace Gzip
 {
     public class GZipCompressor : GZipper, IErrorHandler, IStopProcess
     {
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
         private const int BLOCK_SIZE = 1024 * 1024;
         private const int WAIT_FOR_BLOCK_TIMEOUT = 100;
         private const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 100;
@@ -58,7 +60,7 @@ namespace Gzip
         }
         public void Stop()
         {            
-            Logger.Log("Trying to stop compressor");
+            logger.Info("Trying to stop compressor");
             isStopping = true;
             threadsFinished.Wait();
         }
@@ -123,7 +125,7 @@ namespace Gzip
                         numOfBlock = result.Index;
                         while (!outputQueue.TryAdd(result))
                         {
-                            Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"trying add block {numOfBlock} to queue");
                             while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
                                 if (isStopping)
@@ -132,12 +134,12 @@ namespace Gzip
                                     return;
                                 }
                         }
-                        Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"added gzipped block {numOfBlock} to queue");
                     }
                     else
                     {
-                        Logger.Log($"Thread {Thread.CurrentThread.ManagedThreadId} " +
+                        logger.Info($"Thread {Thread.CurrentThread.ManagedThreadId} " +
                             $"waiting for cantake signal");
                         outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
                     }
@@ -149,7 +151,7 @@ namespace Gzip
                 OnErrorOccured(ex);
             }
 
-            Logger.Log($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+            logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                         $"ended working");
         }
         private void StopAll()
@@ -169,7 +171,7 @@ namespace Gzip
         }
         private void ErrorHandling(object sender, Exception ex) 
         {
-            Logger.Log($"Error in {sender}: {ex.Message}"); 
+            logger.Error($"Error in {sender}: {ex.Message}"); 
             StopAll();
             Exception mainException = new Exception($"Exception in {sender}: {ex.Message}");
             throw mainException;

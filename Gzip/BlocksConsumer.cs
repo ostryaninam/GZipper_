@@ -6,12 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ExceptionsHandling;
+using NLog;
 
 namespace Gzip
 {
     public class BlocksConsumer : IErrorHandler, IStopProcess
     {
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
         private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileWriter fileWriter;
         private readonly BlockingQueue<DataBlock> dataQueue;
@@ -57,7 +59,7 @@ namespace Gzip
                                 }
                         }
                         fileWriter.WriteBlock(block);
-                        Logger.Log($"Blocksconsumer wrote block {block.Index}");
+                        logger.Info($"Blocksconsumer wrote block {block.Index}");
                     }
                 }
             }
