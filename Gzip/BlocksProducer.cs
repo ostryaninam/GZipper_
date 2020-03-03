@@ -18,7 +18,7 @@ namespace Gzip
         private readonly IFileReader fileReader;
         private BlockingQueue<DataBlock> dataQueue;
         private bool stop = false;
-        public Thread producingThread;
+        private Thread producingThread;
         public event ErrorHandler ErrorOccured;
         public BlocksProducer(IFileReader filereader, BlockingQueue<DataBlock> dataQueue)
         {

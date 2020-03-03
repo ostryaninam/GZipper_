@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
 using DataCollection;
 using System.Collections;
@@ -22,22 +21,14 @@ namespace FileManagerLibrary.Implementations
         public SimpleFileReader(string path, int blockSize)
         {
             FileInfo fileInfo = new FileInfo(path);
-            try
-            {
-                fileStream = File.OpenRead(path);
-                this.blockSize = blockSize;
-                NumberOfBlocks = (int)(fileStream.Length / blockSize);
-                if (NumberOfBlocks == 0)
-                {
-                    Logger.Handle(this.GetType(), new FileSizeException());
-                }
-                if (fileStream.Length % blockSize != 0)
-                    NumberOfBlocks++;
-            }
-            catch (IOException e)
-            {
-                Logger.Handle(this.GetType(), e);
-            }
+          
+            fileStream = File.OpenRead(path);
+            this.blockSize = blockSize;
+            NumberOfBlocks = (int)(fileStream.Length / blockSize);
+                
+            if (fileStream.Length % blockSize != 0)
+                NumberOfBlocks++;
+            
         }
         public DataBlock ReadBlock()
         {
@@ -59,7 +50,7 @@ namespace FileManagerLibrary.Implementations
             }
             else
             {
-                throw new FileSizeException();
+                throw new Exception("File size is less than 1 Mb");
             }
         }
 

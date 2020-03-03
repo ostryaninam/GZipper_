@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ExceptionsHandling;
 using FileManagerLibrary.Abstractions;
 using DataCollection;
 
@@ -14,14 +13,7 @@ namespace FileManagerLibrary.Implementations
 
         public SimpleFileWriter(string path)
         {
-            try
-            {
-                fileStream = File.Create(path);
-            }
-            catch(IOException e)
-            {
-                Logger.Handle(this.GetType(), e);
-            }
+            fileStream = File.Create(path);
         }
 
         public void WriteBlock(DataBlock block)

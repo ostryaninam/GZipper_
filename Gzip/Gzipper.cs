@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using FixedThreadPool;
 using FileManagerLibrary.Abstractions;
-using ExceptionsHandling;
 using DataCollection;
 
 namespace Gzip
