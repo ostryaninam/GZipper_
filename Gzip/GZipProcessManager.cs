@@ -18,8 +18,8 @@ namespace Gzip
 
         private readonly string pathFrom;
         private readonly string pathTo;
-        private readonly BlockingQueue<DataBlock> inputQueue;
-        private readonly BlockingQueue<DataBlock> outputQueue;
+        private readonly BlockingQueue<DataBlock> producerQueue;
+        private readonly BlockingQueue<DataBlock> consumerQueue;
         private readonly IBlockGZipper blockGZipper;
 
         private readonly BlocksConsumer blocksConsumer;
@@ -30,20 +30,19 @@ namespace Gzip
         public AutoResetEvent End { get; }
         public Exception Exception { get; private set; }
 
-        //private CountdownEvent threadsFinished;
-
+        private CountdownEvent gzipThreadsFinished;
         public GZipProcessManager(string pathFromName, string pathToName, GZipOperation operation)
         {
             this.pathFrom = pathFromName;  
             this.pathTo = pathToName;
-            this.outputQueue = new BlockingQueue<DataBlock>();
-            this.inputQueue = new BlockingQueue<DataBlock>();
+            this.consumerQueue = new BlockingQueue<DataBlock>();
+            this.producerQueue = new BlockingQueue<DataBlock>();
             this.blocksProducer = new BlocksProducer(
                 new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader(),
-                this.inputQueue);
+                this.producerQueue);
             this.blocksConsumer = new BlocksConsumer(
                 new CompressedFileFactory(pathTo).GetFileWriter(),
-                this.outputQueue);
+                this.consumerQueue);
             this.allThreads = new List<IThread>();
             if (operation == GZipOperation.Compress)
                 this.blockGZipper = new BlockGZipCompressor();
@@ -53,11 +52,21 @@ namespace Gzip
         }
         public void StartProcess()
         {
-            ((IEnding)blocksConsumer).EndEvent += (sender) => End.Set();
+            // to know when consumer ends
+            ((ICompleted)blocksConsumer).CompleteEvent += (sender) => End.Set(); 
             InitializateThreads();        
             foreach (var thread in allThreads)
             {
                 ((IErrorHandler)thread).ErrorOccured += ErrorHandling;
+                //to know when gzip threads completed
+                if (thread is GZipper)
+                    ((ICompleted)thread).CompleteEvent += (sender) =>                  
+                    { 
+                        var result = gzipThreadsFinished.Signal();
+                        if (gzipThreadsFinished.CurrentCount == 0)
+                            consumerQueue.IsCompleted = true;
+                        return result;
+                    };
             }
             StartThreads();
         }
@@ -68,10 +77,10 @@ namespace Gzip
             var gzipThreadsCount = 1;
             if (Environment.ProcessorCount > 2)
                 gzipThreadsCount = Environment.ProcessorCount - 2;
-            //this.threadsFinished = new CountdownEvent(threadsCount);
+            this.gzipThreadsFinished = new CountdownEvent(gzipThreadsCount);
             for (int i = 0; i < gzipThreadsCount; i++)
             {
-                this.allThreads.Add(new GZipperThread(inputQueue, outputQueue, blockGZipper));
+                this.allThreads.Add(new GZipper(producerQueue, consumerQueue, blockGZipper));
             }
             allThreads.Add(blocksConsumer);
         }
@@ -79,7 +88,6 @@ namespace Gzip
         {
             foreach (var thread in allThreads)
                 thread.Start();
-            //outputQueue.IsCompleted = true; TODO how to...
         }
         
         private void StopAll()

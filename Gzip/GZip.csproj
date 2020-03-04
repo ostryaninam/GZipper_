@@ -46,8 +46,8 @@
     <Compile Include="BlocksConsumer.cs" />
     <Compile Include="BlocksProducer.cs" />
     <Compile Include="BlockGZipCompressor.cs" />
-    <Compile Include="GZipperThread.cs" />
-    <Compile Include="IEnding.cs" />
+    <Compile Include="GZipper.cs" />
+    <Compile Include="ICompleted.cs" />
     <Compile Include="IErrorHandler.cs" />
     <Compile Include="IBlockGZipper.cs" />
     <Compile Include="IProcessManager.cs" />

@@ -36,14 +36,21 @@ namespace Gzip
             }
             if (CheckExtensions(pathFrom, pathTo))
             {
-
-                processManager = new GZipProcessManager(pathFrom, pathTo, operation);
-                processManager.StartProcess();
-                processManager.End.WaitOne();
-                if (processManager.Exception == null)
-                    return 0;
-                else
-                    throw processManager.Exception;
+                try
+                {
+                    processManager = new GZipProcessManager(pathFrom, pathTo, operation);
+                    processManager.StartProcess();
+                    processManager.End.WaitOne();
+                    if (processManager.Exception == null)
+                        return 0;
+                    else
+                        throw processManager.Exception;
+                }
+                catch(Exception ex)
+                {
+                    logger.Error(ex.Message);
+                    return -1;
+                }
             }
             else
             {

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Gzip
 {
-    public delegate bool EndHasCome(object sender);
-    interface IEnding
+    public delegate bool CompleteEventHandler(object sender);
+    interface ICompleted
     {
-        event EndHasCome EndEvent;
+        event CompleteEventHandler CompleteEvent;
     }
 }

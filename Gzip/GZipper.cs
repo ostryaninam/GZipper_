@@ -9,7 +9,7 @@ using NLog;
 
 namespace Gzip
 {
-    class GZipperThread : IThread, IErrorHandler
+    class GZipper : IThread, IErrorHandler, ICompleted
     {
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -23,8 +23,9 @@ namespace Gzip
         private bool isStopping = false;
 
         public event ErrorHandler ErrorOccured;
+        public event CompleteEventHandler CompleteEvent;
 
-        public GZipperThread(BlockingQueue<DataBlock> inputQueue, BlockingQueue<DataBlock> outputQueue, 
+        public GZipper(BlockingQueue<DataBlock> inputQueue, BlockingQueue<DataBlock> outputQueue, 
             IBlockGZipper blockGZipper)
         {
             this.inputQueue = inputQueue;
@@ -93,6 +94,11 @@ namespace Gzip
         private void OnErrorOccured(Exception ex)
         {
             this.ErrorOccured?.Invoke(this, ex);
+        }
+
+        private void OnCompleted()
+        {
+            this.CompleteEvent?.Invoke(this);
         }
     }
 }

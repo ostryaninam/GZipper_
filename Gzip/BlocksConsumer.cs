@@ -10,7 +10,7 @@ using NLog;
 
 namespace Gzip
 {
-    public class BlocksConsumer : IErrorHandler, IThread, IEnding
+    public class BlocksConsumer : IErrorHandler, IThread, ICompleted
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -21,7 +21,7 @@ namespace Gzip
         private Thread consumingThread;
 
         public event ErrorHandler ErrorOccured;
-        public event EndHasCome EndEvent;
+        public event CompleteEventHandler CompleteEvent;
 
         public BlocksConsumer(IFileWriter fileWriter, BlockingQueue<DataBlock> dataQueue)
         {
@@ -76,9 +76,9 @@ namespace Gzip
             this.ErrorOccured?.Invoke(this, ex);
         }
 
-        private void OnEnded()
+        private void OnCompleted()
         {
-            this.EndEvent?.Invoke(this);
+            this.CompleteEvent?.Invoke(this);
         }
     }
 }
