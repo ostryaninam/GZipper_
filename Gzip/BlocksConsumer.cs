@@ -12,7 +12,7 @@ namespace Gzip
 {
     public class BlocksConsumer : IErrorHandler, IThread, ICompleted
     {
-        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileWriter fileWriter;
@@ -70,6 +70,7 @@ namespace Gzip
             {
                 OnErrorOccured(ex);
             }
+            OnCompleted();
         }
         private void OnErrorOccured(Exception ex)
         {

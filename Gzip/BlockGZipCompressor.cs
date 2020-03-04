@@ -16,38 +16,27 @@ using NLog;
 
 namespace Gzip
 {
-    public class BlockGZipCompressor : IErrorHandler, IBlockGZipper
+    public class BlockGZipCompressor : IBlockGZipper
     {
         public event ErrorHandler ErrorOccured;
         
         public byte[] Execute(byte[] block)
         {
             byte[] resultBytes = null;
-            try
+
+            using (MemoryStream streamTo = new MemoryStream())
             {
-                using (MemoryStream streamTo = new MemoryStream())
+                using (GZipStream gzipStream = new
+                    GZipStream(streamTo, CompressionMode.Compress))
                 {
-                    using (GZipStream gzipStream = new
-                        GZipStream(streamTo, CompressionMode.Compress))
-                    {
-                        gzipStream.Write(block, 0, block.Length);
-                        gzipStream.Flush();
-                    }
-                    resultBytes = streamTo.ToArray();
+                    gzipStream.Write(block, 0, block.Length);
+                    gzipStream.Flush();
                 }
-
-                return resultBytes;
-            }
-            catch (Exception)
-            {
-                throw;
+                resultBytes = streamTo.ToArray();
             }
 
+            return resultBytes;
         }     
-        private void OnErrorOccured(Exception ex)
-        {
-            this.ErrorOccured?.Invoke(this, ex);
-        }
 
     }
 }

@@ -87,7 +87,7 @@ namespace Gzip
             {
                 OnErrorOccured(ex);
             }
-
+            OnCompleted();
             logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                         $"ended working");
         }

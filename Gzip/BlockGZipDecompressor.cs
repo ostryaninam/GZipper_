@@ -15,41 +15,29 @@ using DataCollection;
 
 namespace Gzip
 {
-    public class BlockGZipDecompressor : IBlockGZipper, IErrorHandler
+    public class BlockGZipDecompressor : IBlockGZipper
     {
         public event ErrorHandler ErrorOccured;
 
         public byte[] Execute(byte[] block)
         {
             byte[] resultBytes = null;
-            try
+
+            using (MemoryStream streamFrom = new MemoryStream(block))
             {
-                using (MemoryStream streamFrom = new MemoryStream(block))
+                using (MemoryStream streamTo = new MemoryStream())
                 {
-                    using (MemoryStream streamTo = new MemoryStream())
+                    using (GZipStream gzipStream = new
+                        GZipStream(streamFrom, CompressionMode.Decompress))
                     {
-                        using (GZipStream gzipStream = new
-                            GZipStream(streamFrom, CompressionMode.Decompress))
-                        {
-                            gzipStream.CopyTo(streamTo);
-                            gzipStream.Flush();
-                        }
-                        resultBytes = streamTo.ToArray();
-                        streamTo.Flush();
+                        gzipStream.CopyTo(streamTo);
+                        gzipStream.Flush();
                     }
+                    resultBytes = streamTo.ToArray();
+                    streamTo.Flush();
                 }
-
-                return resultBytes;
             }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        private void OnErrorOccured(Exception ex)
-        {
-            this.ErrorOccured?.Invoke(this, ex);
+            return resultBytes;
         }
 
     }

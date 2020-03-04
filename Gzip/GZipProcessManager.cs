@@ -12,7 +12,7 @@ namespace Gzip
 {
     class GZipProcessManager : IProcessManager
     {
-        private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private const int BLOCK_SIZE = 1024 * 1024;
 
@@ -25,7 +25,6 @@ namespace Gzip
         private readonly BlocksConsumer blocksConsumer;
         private readonly BlocksProducer blocksProducer;
         private readonly List<IThread> allThreads;
-        private bool isStopping = false;
 
         public AutoResetEvent End { get; }
         public Exception Exception { get; private set; }
