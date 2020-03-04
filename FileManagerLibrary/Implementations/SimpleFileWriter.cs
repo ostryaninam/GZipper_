@@ -18,7 +18,7 @@ namespace FileManagerLibrary.Implementations
 
         public void WriteBlock(DataBlock block)
         { 
-            fileStream.Write(block.GetBlockBytes, 0, block.Length);
+            fileStream.Write(block.BlockBytes, 0, block.Length);
         }
         public void WriteInt32(int value)
         {

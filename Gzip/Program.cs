@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,52 +8,46 @@ using System.Threading;
 
 namespace Gzip
 {
+    public enum GZipOperation { Compress, Decompress };
     class Program
     {
+        private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
         static int Main(string[] args)
         {
             string pathFrom = "";
             string pathTo = "";
-            string operation = "";
+            GZipOperation operation = 0;
             string[] instructions = args;
-            GZipper gZipper = null;
+            IProcessManager processManager = null;
             if (instructions.Length == 3 &&
                 (instructions[0] == "compress" || instructions[0] == "decompress"))
             {
-                operation = instructions[0];
+                if (instructions[0] == "compress")
+                    operation = GZipOperation.Compress;
+                else
+                    operation = GZipOperation.Decompress;
                 pathFrom = instructions[1];
                 pathTo = instructions[2];
             }
             else
             {
-                Console.WriteLine("Wrong input file format");
+                logger.Error("Wrong input file format");
                 return -1;
             }
             if (CheckExtensions(pathFrom, pathTo))
             {
-                try
-                {
-                    if (operation == "compress")
-                    {
-                        gZipper = new GZipCompressor(pathFrom, pathTo);
-                        gZipper.Start();
-                    }
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return -1;
-                }
-                //if (operation == "decompress")
-                //{
-                //    gZipper = new GZipDecompressor(pathFrom, pathTo);
-                //    gZipper.Start();
-                //}            
-                return 0;
+
+                processManager = new GZipProcessManager(pathFrom, pathTo, operation);
+                processManager.StartProcess();
+                processManager.End.WaitOne();
+                if (processManager.Exception == null)
+                    return 0;
+                else
+                    throw processManager.Exception;
             }
             else
             {
-                Console.WriteLine("Wrong input/output file format");
+                logger.Error("Wrong input/output file format");
                 return -1;
             }
 

@@ -11,7 +11,7 @@ namespace Tests
        [TestMethod] 
         public void TestSimpleFileReader()
         {
-            var reader = new SimpleFileFactory(@"/GZipper_/Tests/Rihter_CLR-via-C.pdf", 1024*1024).GetFileReader();
+            var reader = new SimpleFileFactory(@"./GZipper_/Tests/Rihter_CLR-via-C.pdf", 1024*1024).GetFileReader();
             var countOfBlocks = 0;
 
             using (reader)

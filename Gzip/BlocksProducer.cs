@@ -10,7 +10,7 @@ using NLog;
 
 namespace Gzip
 {
-    public class BlocksProducer : IErrorHandler, IStopProcess
+    public class BlocksProducer : IErrorHandler, IThread
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 

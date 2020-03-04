@@ -45,13 +45,17 @@
   <ItemGroup>
     <Compile Include="BlocksConsumer.cs" />
     <Compile Include="BlocksProducer.cs" />
-    <Compile Include="GZipper.cs" />
-    <Compile Include="GZipCompressor.cs" />
+    <Compile Include="BlockGZipCompressor.cs" />
+    <Compile Include="GZipperThread.cs" />
+    <Compile Include="IEnding.cs" />
     <Compile Include="IErrorHandler.cs" />
-    <Compile Include="IStopProcess.cs" />
+    <Compile Include="IBlockGZipper.cs" />
+    <Compile Include="IProcessManager.cs" />
+    <Compile Include="IThread.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="GZipDecompressor.cs" />
+    <Compile Include="BlockGZipDecompressor.cs" />
+    <Compile Include="GZipProcessManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

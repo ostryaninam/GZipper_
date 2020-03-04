@@ -19,21 +19,21 @@ namespace DataCollection
         public int Count => dataQueue.Count;
         public AutoResetEvent CanTake { get; }
         public AutoResetEvent CanAdd { get; }
-        public BlockingQueue()
+        public BlockingQueue(int boundedCapacity = 7000)
         {
-            boundedCapacity = 7000;
-            dataQueue = new ConcurrentQueue<T>();
-            CanTake = new AutoResetEvent(false);
-            CanAdd = new AutoResetEvent(true);
-            IsCompleted = false;
+            this.boundedCapacity = boundedCapacity;
+            this.dataQueue = new ConcurrentQueue<T>();
+            this.CanTake = new AutoResetEvent(false);
+            this.CanAdd = new AutoResetEvent(true);
+            this.IsCompleted = false;
         }
        
         public bool TryAdd(T item) 
         {
             bool result = false;
-            if (!IsCompleted && dataQueue.Count <= boundedCapacity)
+            if (!IsCompleted && this.dataQueue.Count <= BoundedCapacity)
             {
-                dataQueue.Enqueue(item);
+                this.dataQueue.Enqueue(item);
                 result = true;
                 CanTake.Set();
             }
@@ -46,7 +46,7 @@ namespace DataCollection
             item = default(T);
             if (!IsEmpty)
             {                 
-                result = dataQueue.TryDequeue(out item);
+                result = this.dataQueue.TryDequeue(out item);
                 CanAdd.Set();
             }                              
             return result;

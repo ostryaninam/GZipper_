@@ -29,7 +29,7 @@ namespace FileManagerLibrary.Implementations
         {
             WriteIndex(block.Index);
             WriteInt32(block.Length);
-            fileStream.Write(block.GetBlockBytes, 0, block.Length);
+            fileStream.Write(block.BlockBytes, 0, block.Length);
         }
 
         public void Dispose()

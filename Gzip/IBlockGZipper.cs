@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataCollection;
 
 namespace Gzip
 {
-    public interface IStopProcess
+    interface IBlockGZipper
     {
-        void Stop();
+        byte[] Execute(byte[] block);
     }
 }
