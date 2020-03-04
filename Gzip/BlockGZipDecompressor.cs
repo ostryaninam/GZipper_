@@ -10,7 +10,6 @@ using System.Threading;
 using FileManagerLibrary;
 using FileManagerLibrary.Abstractions;
 using FileManagerLibrary.Implementations;
-using FixedThreadPool;
 using DataCollection;
 
 namespace Gzip
