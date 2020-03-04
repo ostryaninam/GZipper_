@@ -7,7 +7,7 @@ namespace FileManagerLibrary.Implementations
 {
     public class CompressedFileFactory : IFileFactory
     {
-        string path;
+        private readonly string path;
         public CompressedFileFactory(string path)
         {
             this.path = path;

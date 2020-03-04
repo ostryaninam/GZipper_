@@ -10,31 +10,31 @@ namespace FileManagerLibrary.Implementations
 {
     class CompressedFileWriter : IFileWriter
     {
-        FileStream fileStream;
+        private readonly FileStream fileStream;
         public CompressedFileWriter(string path)
         {
-            fileStream = new FileStream(path, FileMode.Create);
+            this.fileStream = new FileStream(path, FileMode.Create);
         }
         private void WriteIndex(long value)
         {
             var valueBytes = BitConverter.GetBytes(value);
-            fileStream.Write(valueBytes, 0, valueBytes.Length);
+            this.fileStream.Write(valueBytes, 0, valueBytes.Length);
         }
         public void WriteInt32(int value)
         {
             var valueBytes = BitConverter.GetBytes(value);
-            fileStream.Write(valueBytes, 0, valueBytes.Length);
+            this.fileStream.Write(valueBytes, 0, valueBytes.Length);
         }
         public void WriteBlock(DataBlock block)
         {
             WriteIndex(block.Index);
             WriteInt32(block.Length);
-            fileStream.Write(block.BlockBytes, 0, block.Length);
+            this.fileStream.Write(block.BlockBytes, 0, block.Length);
         }
 
         public void Dispose()
         {
-            fileStream.Close();
+            this.fileStream.Close();
         }
     }
 }

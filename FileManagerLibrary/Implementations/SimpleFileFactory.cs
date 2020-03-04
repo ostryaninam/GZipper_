@@ -7,8 +7,8 @@ namespace FileManagerLibrary.Implementations
 {
     public class SimpleFileFactory : IFileFactory
     {
-        string path;
-        int blockSize;
+        private readonly string path;
+        private readonly int blockSize;
         public SimpleFileFactory(string path,int blockSize)
         {
             this.path = path;

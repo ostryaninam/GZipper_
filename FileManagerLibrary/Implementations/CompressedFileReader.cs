@@ -24,7 +24,7 @@ namespace FileManagerLibrary.Implementations
         public CompressedFileReader(string path)
         {
             this.fileStream = File.OpenRead(path);
-            NumberOfBlocks = ReadNumberOfBlocks();
+            this.NumberOfBlocks = ReadNumberOfBlocks();
         }
         public DataBlock ReadBlock()
         {

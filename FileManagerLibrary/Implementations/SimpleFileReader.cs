@@ -22,29 +22,29 @@ namespace FileManagerLibrary.Implementations
         {
             FileInfo fileInfo = new FileInfo(path);
           
-            fileStream = File.OpenRead(path);
+            this.fileStream = File.OpenRead(path);
             this.blockSize = blockSize;
-            NumberOfBlocks = (int)(fileStream.Length / blockSize);
+            this.NumberOfBlocks = (int)(this.fileStream.Length / blockSize);
                 
-            if (fileStream.Length % blockSize != 0)
-                NumberOfBlocks++;
+            if (this.fileStream.Length % this.blockSize != 0)
+                this.NumberOfBlocks++;
             
         }
         public DataBlock ReadBlock()
         {
             byte[] fileBlock = new byte[blockSize];
             var index = currentIndexOfBlock;
-            if (fileStream.Length >= blockSize)
+            if (this.fileStream.Length >= this.blockSize)
             {
                 try
                 {
-                    fileStream.Read(fileBlock, 0, blockSize);
+                    this.fileStream.Read(fileBlock, 0, blockSize);
                     currentIndexOfBlock++;
                     return new DataBlock(index, fileBlock);
                 }
                 catch (EndOfStreamException)
                 {
-                    fileStream.Read(fileBlock, 0, (int)(fileStream.Length - fileStream.Position));
+                    this.fileStream.Read(fileBlock, 0, (int)(this.fileStream.Length - this.fileStream.Position));
                     return new DataBlock(index, fileBlock);
                 }
             }
@@ -62,12 +62,12 @@ namespace FileManagerLibrary.Implementations
 
         public void Reset()
         {
-            fileStream.Position = 0;
+            this.fileStream.Position = 0;
         }
         
         public void Dispose()
         {
-            fileStream.Close();
+            this.fileStream.Close();
         }
 
         public IEnumerator<DataBlock> GetEnumerator()
