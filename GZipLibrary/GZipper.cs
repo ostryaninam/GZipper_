@@ -7,44 +7,50 @@ using System.Threading.Tasks;
 using DataCollection;
 using NLog;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    class GZipper : IThread, IErrorHandler, ICompleted
+    class GZipper : IWorker
     {
-        private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        protected static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        private const int WAIT_FOR_BLOCK_TIMEOUT = 100;
-        private const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 100;
+        protected const int WAIT_FOR_BLOCK_TIMEOUT = 100;
+        protected const int WAIT_FOR_ADD_BLOCK_TIMEOUT = 100;
 
-        private readonly BlockingQueue<DataBlock> inputQueue;
-        private readonly BlockingQueue<DataBlock> outputQueue;
-        private readonly IBlockGZipper blockGZipper;
-        private Thread workingThread;
-        private bool isStopping = false;
+        protected readonly BlockingQueue inputQueue;
+        protected readonly IBlockingCollection outputQueue;
+        protected readonly IBlockGZipper blockGZipper;
+        protected readonly int numOfThreads;
+        protected bool isStopping = false;
+        protected CountdownEvent threadsCompleted;
 
-        public event ErrorHandler ErrorOccured;
-        public event CompleteEventHandler CompleteEvent;
-
-        public GZipper(BlockingQueue<DataBlock> inputQueue, BlockingQueue<DataBlock> outputQueue, 
-            IBlockGZipper blockGZipper)
+        public event EventHandler<Exception> ErrorOccured;
+        public event EventHandler CompleteEvent;
+        public GZipper(BlockingQueue inputQueue, IBlockingCollection outputQueue, 
+            IBlockGZipper blockGZipper, int numOfThreads)
         {
             this.inputQueue = inputQueue;
             this.outputQueue = outputQueue;
             this.blockGZipper = blockGZipper;
+            this.numOfThreads = numOfThreads;
         }
 
         public void Start()
         {
-            workingThread = new Thread(new ThreadStart(() => ThreadWork()));
-            workingThread.Start();
+            this.threadsCompleted = new CountdownEvent(numOfThreads);
+            for (int i = 0; i < this.numOfThreads; i++)
+            {
+                var gzipThread = new Thread(new ThreadStart(() => ThreadWork()));
+                gzipThread.Start();
+            }
+            CompleteEvent += (sender, e) => outputQueue.IsCompleted = true;
         }
         public void Stop()
         {
             isStopping = true;
-            workingThread.Join();
+            threadsCompleted.Wait();
+            OnCompleted();
         }
-
-        protected void ThreadWork()
+        private void ThreadWork()
         {
             try
             {
@@ -52,7 +58,7 @@ namespace Gzip
                 {
                     if (isStopping)
                     {
-                        //threadsFinished.Signal();
+                        threadsCompleted.Signal();
                         return;
                     }
                     long numOfBlock = 0;
@@ -67,7 +73,7 @@ namespace Gzip
                             while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
                                 if (isStopping)
                                 {
-                                    //threadsFinished.Signal();
+                                    threadsCompleted.Signal();
                                     return;
                                 }
                         }
@@ -81,15 +87,17 @@ namespace Gzip
                         outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
                     }
                 }
-                //threadsFinished.Signal();
+                threadsCompleted.Signal();
+                if (threadsCompleted.CurrentCount == 0)
+                    OnCompleted();
+                logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            $"ended working");
             }
             catch (Exception ex)
             {
                 OnErrorOccured(ex);
             }
-            OnCompleted();
-            logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
-                        $"ended working");
+           
         }
         private void OnErrorOccured(Exception ex)
         {
@@ -98,7 +106,7 @@ namespace Gzip
 
         private void OnCompleted()
         {
-            this.CompleteEvent?.Invoke(this);
+            this.CompleteEvent?.Invoke(this, new EventArgs());
         }
     }
 }

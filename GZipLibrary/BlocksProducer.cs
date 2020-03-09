@@ -8,23 +8,26 @@ using DataCollection;
 using System.Threading;
 using NLog;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    public class BlocksProducer : IErrorHandler, IThread
+    class BlocksProducer : IWorker
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private const int QUEUE_WAIT_TRYADD_TIMEOUT = 100;
         private readonly IFileReader fileReader;
-        private BlockingQueue<DataBlock> dataQueue;
+        private BlockingQueue dataQueue;
         private bool stop = false;
         private Thread producingThread;
-        public event ErrorHandler ErrorOccured;
-        public BlocksProducer(IFileReader filereader, BlockingQueue<DataBlock> dataQueue)
+        public event EventHandler<Exception> ErrorOccured;
+        public event EventHandler CompleteEvent;
+
+        public BlocksProducer(IFileReader filereader, BlockingQueue dataQueue)
         {
             this.fileReader = filereader;
             this.dataQueue = dataQueue;
         }
+
 
         public void Start()
         {

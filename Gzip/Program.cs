@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    public enum GZipOperation { Compress, Decompress };
     class Program
     {
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -39,8 +38,7 @@ namespace Gzip
                 try
                 {
                     processManager = new GZipProcessManager(pathFrom, pathTo, operation);
-                    processManager.StartProcess();
-                    processManager.End.WaitOne();
+                    processManager.StartProcess().WaitOne();
                     if (processManager.Exception == null)
                         return 0;
                     else

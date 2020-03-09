@@ -18,18 +18,17 @@ namespace Tests
             var debugPath = Directory.GetCurrentDirectory();
             var binPath = Path.GetDirectoryName(debugPath);
             var testsPath = Path.GetDirectoryName(binPath);
-            var reader = new SimpleFileFactory($@"{testsPath}/Rihter_CLR-via-C.pdf", 1024 * 1024).GetFileReader();
             var countOfBlocks = 0;
 
-            using (reader)
+            using (var reader=new SimpleFileFactory($@"{testsPath}/Rihter_CLR-via-C.pdf", 1024 * 1024).GetFileReader())
             {
                 foreach (var block in reader)
                 {
                     countOfBlocks++;
                 }
+                Assert.AreEqual(reader.NumberOfBlocks, countOfBlocks);
             }
 
-            Assert.AreEqual(reader.NumberOfBlocks, countOfBlocks);
         }
     }
 }

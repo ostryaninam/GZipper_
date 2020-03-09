@@ -12,14 +12,11 @@ using FileManagerLibrary.Abstractions;
 using FileManagerLibrary.Implementations;
 using DataCollection;
 using System.Diagnostics;
-using NLog;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    public class BlockGZipCompressor : IBlockGZipper
-    {
-        public event ErrorHandler ErrorOccured;
-        
+    class BlockGZipCompressor : IBlockGZipper
+    {        
         public byte[] Execute(byte[] block)
         {
             byte[] resultBytes = null;

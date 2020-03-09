@@ -5,12 +5,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    interface IProcessManager
+    public interface IProcessManager
     {
-        void StartProcess();
-        AutoResetEvent End { get; }
+        AutoResetEvent StartProcess();
         Exception Exception { get; }
     }
 }

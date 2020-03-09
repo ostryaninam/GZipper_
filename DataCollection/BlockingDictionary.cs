@@ -7,72 +7,51 @@ using System.Threading;
 
 namespace DataCollection
 {
-    public class BlockingDictionary 
+    public class BlockingDictionary : IBlockingCollection
     {
-        private Dictionary<long, byte[]> dataDictionary;  
-        ManualResetEvent blockAdded;
-        ManualResetEvent blockTaken;
-        AutoResetEvent isEmpty;
-        private int boundedCapacity;
-        private object lockObject;
-
-        public int BoundedCapacity { get => boundedCapacity; }
+        private readonly ConcurrentDictionary<long,DataBlock> dataDictionary;
+        public bool IsCompleted { get; set; }
+        public bool IsEmpty => dataDictionary.IsEmpty;
+        public int BoundedCapacity { get; }
         public int Count => dataDictionary.Count;
+        public AutoResetEvent CanTake { get; }
+        public AutoResetEvent CanAdd { get; }
 
-        public BlockingDictionary()
+
+        public BlockingDictionary(int boundedCapacity = 7000)
         {
-            this.boundedCapacity = 5000;
-            dataDictionary = new Dictionary<long, byte[]>();
-            blockTaken = new ManualResetEvent(false);
-            lockObject = new object();
-            blockAdded = new ManualResetEvent(false);
-            isEmpty = new AutoResetEvent(true);
+            this.dataDictionary = new ConcurrentDictionary<long, DataBlock>();
+            this.BoundedCapacity = boundedCapacity;
+            this.CanAdd = new AutoResetEvent(true);
+            this.CanTake = new AutoResetEvent(false);
         }
 
-        public bool TryAdd(long index, byte[] block)
+        public bool TryAdd(DataBlock block)
         {
-            bool added = false;
-            while (!added)
+            bool result = false;
+
+            if (this.dataDictionary.Count <= BoundedCapacity && !IsCompleted)
             {
-                if (dataDictionary.Count <= boundedCapacity)
-                    lock (lockObject)
-                    {
-                        dataDictionary.Add(index, block);
-                        added = true;
-                        blockAdded.Set();
-                        blockAdded.Reset();
-                    }
-                else
-                {
-                    blockTaken.WaitOne(); 
-                }
+                result = this.dataDictionary.TryAdd(block.Index, block);
+                CanTake.Set();
             }
-            return true;
+
+            return result;
         }
 
 
-        public bool TryTake(long key, out byte[] item)
+        public bool TryTake(long key, out DataBlock item)
         {
             item = null;
             bool result = false;
-            while (!result)
+
+            if (!IsEmpty)
             {
-                lock (lockObject)
-                {
-                    result = dataDictionary.TryGetValue(key, out item);
-                }
-                if (result)
-                {
-                    dataDictionary.Remove(key);
-                    blockTaken.Set();
-                    blockTaken.Reset();
-                }
-                else
-                {
-                    blockAdded.WaitOne();
-                }
+                result = this.dataDictionary.TryRemove(key, out item);
+                CanAdd.Set();
             }
-            return true;
+            
+            return result;
         }
     }
 }

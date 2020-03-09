@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gzip
+namespace GZipLibrary
 {
-    interface IThread
+    interface IWorker
     {
+        event EventHandler<Exception> ErrorOccured;
+
+        event EventHandler CompleteEvent;
         void Start();
         void Stop();
     }
