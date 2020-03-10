@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GZip", "Gzip\GZip.csproj", "{C26AD47D-8AD3-4550-AB69-EB0368026992}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainApplication", "Gzip\MainApplication.csproj", "{C26AD47D-8AD3-4550-AB69-EB0368026992}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileManagerLibrary", "FileManagerLibrary\FileManagerLibrary.csproj", "{3639A60A-AF85-482E-946F-EA99CBCEF00D}"
 EndProject
@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataCollection", "DataColle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{623B2017-90D5-4FCC-8305-15A53DF8881D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GZipLibrary", "GZipLibrary\GZipLibrary.csproj", "{9C23A54E-A6CD-491B-A8BC-9A12A343F0CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GZipLibrary", "GZipLibrary\GZipLibrary.csproj", "{9C23A54E-A6CD-491B-A8BC-9A12A343F0CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
