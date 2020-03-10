@@ -42,7 +42,11 @@ namespace GZipLibrary
                 var gzipThread = new Thread(new ThreadStart(() => ThreadWork()));
                 gzipThread.Start();
             }
-            CompleteEvent += (sender, e) => outputQueue.IsCompleted = true;
+            CompleteEvent += (sender, e) =>
+            {
+                outputQueue.IsCompleted = true;
+                logger.Info("Queue is marked as completed");
+            };
         }
         public void Stop()
         {

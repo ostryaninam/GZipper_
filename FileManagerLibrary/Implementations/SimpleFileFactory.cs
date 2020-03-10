@@ -9,9 +9,12 @@ namespace FileManagerLibrary.Implementations
     {
         private readonly string path;
         private readonly int blockSize;
-        public SimpleFileFactory(string path,int blockSize)
+        public SimpleFileFactory(string path)
         {
             this.path = path;
+        }
+        public SimpleFileFactory(string path,int blockSize) : this(path)
+        {
             this.blockSize = blockSize;
         }
         public IFileReader GetFileReader()

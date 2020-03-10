@@ -13,49 +13,60 @@ namespace GZipLibrary
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
         static int Main(string[] args)
         {
-            string pathFrom = "";
-            string pathTo = "";
-            GZipOperation operation = 0;
-            string[] instructions = args;
-            IProcessManager processManager = null;
-            if (instructions.Length == 3 &&
-                (instructions[0] == "compress" || instructions[0] == "decompress"))
+            //string pathFrom = "";
+            //string pathTo = "";
+            //GZipOperation operation = 0;
+            //string[] instructions = args;
+            //IProcessManager processManager = null;
+            //if (instructions.Length == 3 &&
+            //    (instructions[0] == "compress" || instructions[0] == "decompress"))
+            //{
+            //    if (instructions[0] == "compress")
+            //        operation = GZipOperation.Compress;
+            //    else
+            //        operation = GZipOperation.Decompress;
+            //    pathFrom = instructions[1];
+            //    pathTo = instructions[2];
+            //}
+            //else
+            //{
+            //    logger.Error("Wrong input file format");
+            //    return -1;
+            //}
+            //if (CheckExtensions(pathFrom, pathTo))
+            //{
+            //    try
+            //    {
+            //        processManager = new GZipProcessManager(pathFrom, pathTo, operation);
+            //        processManager.StartProcess().WaitOne();
+            //        if (processManager.Exception == null)
+            //            return 0;
+            //        else
+            //            throw processManager.Exception;
+            //    }
+            //    catch(Exception ex)
+            //    {
+            //        logger.Error(ex.Message);
+            //        return -1;
+            //    }
+            //}
+            //else
+            //{
+            //    logger.Error("Wrong input/output file format");
+            //    return -1;
+            //}
+            try
             {
-                if (instructions[0] == "compress")
-                    operation = GZipOperation.Compress;
-                else
-                    operation = GZipOperation.Decompress;
-                pathFrom = instructions[1];
-                pathTo = instructions[2];
+                GZipProcessManager manager = new GZipProcessManager(@"C:\mults\Rihter_CLR-via-C.gz",
+                    @"C:\mults\Rihter_CLR-via-C1.pdf",
+                    GZipOperation.Decompress);
+                manager.StartProcess().WaitOne();
             }
-            else
+            catch(Exception e)
             {
-                logger.Error("Wrong input file format");
-                return -1;
+                logger.Error(e);
             }
-            if (CheckExtensions(pathFrom, pathTo))
-            {
-                try
-                {
-                    processManager = new GZipProcessManager(pathFrom, pathTo, operation);
-                    processManager.StartProcess().WaitOne();
-                    if (processManager.Exception == null)
-                        return 0;
-                    else
-                        throw processManager.Exception;
-                }
-                catch(Exception ex)
-                {
-                    logger.Error(ex.Message);
-                    return -1;
-                }
-            }
-            else
-            {
-                logger.Error("Wrong input/output file format");
-                return -1;
-            }
-
+            return 0;
         }
         static bool CheckExtensions(string pathFrom, string pathTo)                             
         {

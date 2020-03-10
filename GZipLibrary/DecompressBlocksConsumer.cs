@@ -13,11 +13,12 @@ namespace GZipLibrary
         public override void ThreadWork()
         {
             long indexOfBlock = 0;
+            var completeTakingBlocks = new Func<bool>(() => dataCollection.IsEmpty && dataCollection.IsCompleted);
             try
             {
                 using (fileWriter)
                 {
-                    while (!(dataCollection.IsEmpty && dataCollection.IsCompleted))
+                    while (!(completeTakingBlocks()))
                     {
                         if (stop)
                         {
@@ -27,14 +28,16 @@ namespace GZipLibrary
                         while (!((BlockingDictionary)dataCollection).TryTake(indexOfBlock, out block))
                         {
                             while (!dataCollection.CanTake.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
-                                if (stop)
+                                if (stop||completeTakingBlocks())
                                 {
                                     return;
                                 }
                         }
                         fileWriter.WriteBlock(block);
                         logger.Info($"Blocksconsumer wrote block {block.Index}");
+                        indexOfBlock++;
                     }
+                    logger.Info($"Blocksconsumer ended working");
                 }
             }
             catch (Exception ex)

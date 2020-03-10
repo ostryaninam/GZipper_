@@ -8,6 +8,5 @@ namespace FileManagerLibrary.Abstractions
     public interface IFileWriter : IDisposable
     {
         void WriteBlock(DataBlock block);
-        void WriteInt32(int value);
     }
 }

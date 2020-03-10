@@ -13,7 +13,7 @@ namespace Tests
     public class FileTestClass
     {
         [TestMethod]
-        public void TestFileReader()
+        public void TestFileSimpleReader()
         {
             var debugPath = Directory.GetCurrentDirectory();
             var binPath = Path.GetDirectoryName(debugPath);
@@ -21,6 +21,24 @@ namespace Tests
             var countOfBlocks = 0;
 
             using (var reader=new SimpleFileFactory($@"{testsPath}/Rihter_CLR-via-C.pdf", 1024 * 1024).GetFileReader())
+            {
+                foreach (var block in reader)
+                {
+                    countOfBlocks++;
+                }
+                Assert.AreEqual(reader.NumberOfBlocks, countOfBlocks);
+            }
+
+        }
+        [TestMethod]
+        public void TestFileCompressedReader()
+        {
+            var debugPath = Directory.GetCurrentDirectory();
+            var binPath = Path.GetDirectoryName(debugPath);
+            var testsPath = Path.GetDirectoryName(binPath);
+            var countOfBlocks = 0;
+
+            using (var reader = new CompressedFileFactory($@"{testsPath}/Rihter_CLR-via-C.gz").GetFileReader())
             {
                 foreach (var block in reader)
                 {

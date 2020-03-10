@@ -11,16 +11,17 @@ namespace FileManagerLibrary.Implementations
     class CompressedFileWriter : IFileWriter
     {
         private readonly FileStream fileStream;
-        public CompressedFileWriter(string path)
+        public CompressedFileWriter(string path, int numberOfBlocks)
         {
             this.fileStream = new FileStream(path, FileMode.Create);
+            WriteInt32(numberOfBlocks);
         }
         private void WriteIndex(long value)
         {
             var valueBytes = BitConverter.GetBytes(value);
             this.fileStream.Write(valueBytes, 0, valueBytes.Length);
         }
-        public void WriteInt32(int value)
+        private void WriteInt32(int value)
         {
             var valueBytes = BitConverter.GetBytes(value);
             this.fileStream.Write(valueBytes, 0, valueBytes.Length);

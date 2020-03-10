@@ -41,11 +41,11 @@ namespace GZipLibrary
             {
                 this.consumerCollection = new BlockingQueue();
                 this.blockGZipper = new BlockGZipCompressor();
-                this.blocksProducer = new BlocksProducer(
-                    new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader(),
+                var fileReader = new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader();
+                this.blocksProducer = new BlocksProducer(fileReader,
                     this.producerQueue);
                 this.blocksConsumer = new CompressBlocksConsumer(
-                    new CompressedFileFactory(pathTo).GetFileWriter(),
+                    new CompressedFileFactory(pathTo, fileReader.NumberOfBlocks).GetFileWriter(),
                     this.consumerCollection);
             }
             else
@@ -53,10 +53,10 @@ namespace GZipLibrary
                 this.blockGZipper = new BlockGZipDecompressor();
                 this.consumerCollection = new BlockingDictionary();
                 this.blocksProducer = new BlocksProducer(
-                    new SimpleFileFactory(pathFrom, BLOCK_SIZE).GetFileReader(),
+                    new CompressedFileFactory(pathFrom).GetFileReader(),
                     this.producerQueue);
-                this.blocksConsumer = new CompressBlocksConsumer(
-                    new CompressedFileFactory(pathTo).GetFileWriter(),
+                this.blocksConsumer = new DecompressBlocksConsumer(
+                    new SimpleFileFactory(pathTo).GetFileWriter(),
                     this.consumerCollection);
             }
 

@@ -12,11 +12,13 @@ namespace FileManagerLibrary.Implementations
     {
         private readonly FileStream fileStream;
         private DataBlock currentBlock;
+        private long currentIndexOfBlock = 0;
+
         public CompressedFileReader(FileStream filestream)
         {
             this.fileStream = filestream;
         }
-        public bool EndOfFile => fileStream.Position >= fileStream.Length;
+        public bool EndOfFile => currentIndexOfBlock > NumberOfBlocks;
         public int NumberOfBlocks { get; }
         DataBlock IEnumerator<DataBlock>.Current => currentBlock;
         public object Current => currentBlock;
@@ -24,7 +26,7 @@ namespace FileManagerLibrary.Implementations
         public CompressedFileReader(string path)
         {
             this.fileStream = File.OpenRead(path);
-            this.NumberOfBlocks = ReadNumberOfBlocks();
+            this.NumberOfBlocks = ReadInt32();
         }
         public DataBlock ReadBlock()
         {
@@ -51,6 +53,7 @@ namespace FileManagerLibrary.Implementations
         public bool MoveNext()
         {        
             this.currentBlock = ReadBlock();
+            currentIndexOfBlock++;
             return !EndOfFile;
         }
 
@@ -59,12 +62,7 @@ namespace FileManagerLibrary.Implementations
             this.fileStream.Position = 0;
         }
 
-        private int ReadNumberOfBlocks()
-        {
-            var byteNumberOfBlocks = new byte[4];
-            this.fileStream.Read(byteNumberOfBlocks, 0, 4);
-            return BitConverter.ToInt32(byteNumberOfBlocks, 0);
-        }
+
 
         public void Dispose()
         {

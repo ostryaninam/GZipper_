@@ -14,9 +14,10 @@ namespace GZipLibrary
         {
             try
             {
+                var completeTakingBlocks = new Func<bool>(() => dataCollection.IsEmpty && dataCollection.IsCompleted);
                 using (fileWriter)
                 {
-                    while (!(dataCollection.IsEmpty && dataCollection.IsCompleted))
+                    while (!(completeTakingBlocks()))
                     {
                         if (stop)
                         {
@@ -26,7 +27,7 @@ namespace GZipLibrary
                         while (!((BlockingQueue)dataCollection).TryTake(out block))
                         {
                             while (!dataCollection.CanTake.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
-                                if (stop)
+                                if (stop||completeTakingBlocks())
                                 {
                                     return;
                                 }
