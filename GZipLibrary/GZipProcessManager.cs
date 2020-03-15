@@ -89,6 +89,7 @@ namespace GZipLibrary
         }        
         private void StopAll()
         {
+            logger.Debug("Began start all process");
             Thread stoppingThread = new Thread(new ThreadStart(() =>
             {
                 foreach (var worker in allWorkers)

@@ -52,6 +52,7 @@ namespace GZipLibrary
                     {
                         if (stop)
                         {
+                            logger.Debug("Blocksproducer ended working");
                             return;
                         }
                         while (!dataQueue.TryAdd(block))
@@ -63,6 +64,7 @@ namespace GZipLibrary
                                     $" {block.Index} to queue");
                                 if (stop)
                                 {
+                                    logger.Debug("Blocksproducer ended working");
                                     return;
                                 }
                             }
@@ -71,6 +73,7 @@ namespace GZipLibrary
                     }
                     dataQueue.IsCompleted = true;
                 }
+                logger.Debug("Blocksproducer ended working");
             }
             catch(Exception ex)
             {

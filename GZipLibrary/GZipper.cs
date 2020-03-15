@@ -11,6 +11,8 @@ namespace GZipLibrary
 {
     class GZipper : IWorker
     {
+        private bool EndCondition => inputQueue.IsCompleted && inputQueue.IsEmpty;
+
         protected static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         protected const int WAIT_FOR_BLOCK_TIMEOUT = 100;
@@ -58,11 +60,11 @@ namespace GZipLibrary
         {
             try
             {
-                while (!(inputQueue.IsCompleted && inputQueue.IsEmpty))
+                while (!EndCondition)
                 {
                     if (isStopping)
                     {
-                        threadsCompleted.Signal();
+                        Complete();
                         return;
                     }
                     long numOfBlock = 0;
@@ -75,9 +77,9 @@ namespace GZipLibrary
                             logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"trying add block {numOfBlock} to queue");
                             while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
-                                if (isStopping)
+                                if (isStopping||EndCondition)
                                 {
-                                    threadsCompleted.Signal();
+                                    Complete();
                                     return;
                                 }
                         }
@@ -91,17 +93,21 @@ namespace GZipLibrary
                         outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
                     }
                 }
-                threadsCompleted.Signal();
-                if (threadsCompleted.CurrentCount == 0)
-                    OnCompleted();
-                logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
-                            $"ended working");
+                Complete();
             }
             catch (Exception ex)
             {
                 OnErrorOccured(ex);
             }
            
+        }
+        private void Complete()
+        {
+            logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            $"ended working");
+            threadsCompleted.Signal();
+            if (threadsCompleted.CurrentCount == 0)
+                OnCompleted();
         }
         private void OnErrorOccured(Exception ex)
         {

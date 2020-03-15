@@ -8,27 +8,31 @@ namespace GZipLibrary
 {
     class CompressBlocksConsumer : BlocksConsumer
     {
+        private bool EndCondition => dataCollection.IsEmpty && dataCollection.IsCompleted;
         public CompressBlocksConsumer(IFileWriter fileWriter, IBlockingCollection dataQueue) :
             base(fileWriter, dataQueue) { }
         public override void ThreadWork()
         {
             try
             {
-                var completeTakingBlocks = new Func<bool>(() => dataCollection.IsEmpty && dataCollection.IsCompleted);
                 using (fileWriter)
                 {
-                    while (!(completeTakingBlocks()))
+                    while (!EndCondition)
                     {
                         if (stop)
                         {
+                            logger.Debug("Blocksconsumer completed working");
+                            OnCompleted();
                             return;
                         }
                         DataBlock block = null;
                         while (!((BlockingQueue)dataCollection).TryTake(out block))
                         {
                             while (!dataCollection.CanTake.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
-                                if (stop||completeTakingBlocks())
+                                if (stop||EndCondition)
                                 {
+                                    logger.Debug("Blocksconsumer completed working");
+                                    OnCompleted();
                                     return;
                                 }
                         }
@@ -36,6 +40,7 @@ namespace GZipLibrary
                         logger.Debug($"Blocksconsumer wrote block {block.Index}");
                     }
                 }
+                logger.Debug("Blocksconsumer completed working");
             }
             catch (Exception ex)
             {

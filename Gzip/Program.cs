@@ -14,6 +14,7 @@ namespace MainApplication
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         static int Main(string[] args)
         {
+            logger.Info("Hello!");
             string pathFrom = "";
             string pathTo = "";
             GZipOperation operation = 0;
@@ -22,6 +23,7 @@ namespace MainApplication
             if (instructions.Length == 3 &&
                 (instructions[0] == "compress" || instructions[0] == "decompress"))
             {
+
                 if (instructions[0] == "compress")
                     operation = GZipOperation.Compress;
                 else
@@ -34,14 +36,18 @@ namespace MainApplication
                 logger.Error("Wrong input file format");
                 return -1;
             }
-            if (CheckExtensions(pathFrom, pathTo))
+            if (CheckExtensions(pathFrom, pathTo, operation))
             {
                 try
                 {
                     processManager = new GZipProcessManager(pathFrom, pathTo, operation);
+                    logger.Info("Process started");
                     processManager.StartProcess().WaitOne();
                     if (processManager.Exception == null)
+                    {
+                        logger.Info("Successful");
                         return 0;
+                    }
                     else
                         throw processManager.Exception;
                 }
@@ -57,16 +63,25 @@ namespace MainApplication
                 return -1;
             }
 
-            return 0;
         }
-        static bool CheckExtensions(string pathFrom, string pathTo)
+        static bool CheckExtensions(string pathFrom, string pathTo, GZipOperation operation)
         {
             FileInfo fileFrom = new FileInfo(pathFrom);
             FileInfo fileTo = new FileInfo(pathTo);
-            if (fileFrom.Extension != ".gz" && fileTo.Extension == ".gz")
-                return true;
+            if (operation == GZipOperation.Compress)
+            {
+                if (fileFrom.Extension != ".gz" && fileTo.Extension == ".gz")
+                    return true;
+                else
+                    return false;
+            }
             else
-                return false;
+            {
+                if (fileFrom.Extension == ".gz" && fileTo.Extension != ".gz")
+                    return true;
+                else
+                    return false;
+            }
         }
     }
 
