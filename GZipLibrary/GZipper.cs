@@ -45,7 +45,7 @@ namespace GZipLibrary
             CompleteEvent += (sender, e) =>
             {
                 outputQueue.IsCompleted = true;
-                logger.Info("Queue is marked as completed");
+                logger.Debug("Queue is marked as completed");
             };
         }
         public void Stop()
@@ -72,7 +72,7 @@ namespace GZipLibrary
                         numOfBlock = result.Index;
                         while (!outputQueue.TryAdd(result))
                         {
-                            logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                            logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"trying add block {numOfBlock} to queue");
                             while (!outputQueue.CanAdd.WaitOne(WAIT_FOR_ADD_BLOCK_TIMEOUT))
                                 if (isStopping)
@@ -81,12 +81,12 @@ namespace GZipLibrary
                                     return;
                                 }
                         }
-                        logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                        logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"added gzipped block {numOfBlock} to queue");
                     }
                     else
                     {
-                        logger.Info($"Thread {Thread.CurrentThread.ManagedThreadId} " +
+                        logger.Debug($"Thread {Thread.CurrentThread.ManagedThreadId} " +
                             $"waiting for cantake signal");
                         outputQueue.CanTake.WaitOne(WAIT_FOR_BLOCK_TIMEOUT);
                     }
@@ -94,7 +94,7 @@ namespace GZipLibrary
                 threadsCompleted.Signal();
                 if (threadsCompleted.CurrentCount == 0)
                     OnCompleted();
-                logger.Info($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
+                logger.Debug($"Thread number {Thread.CurrentThread.ManagedThreadId} " +
                             $"ended working");
             }
             catch (Exception ex)

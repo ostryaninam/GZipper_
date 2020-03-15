@@ -34,10 +34,10 @@ namespace GZipLibrary
                                 }
                         }
                         fileWriter.WriteBlock(block);
-                        logger.Info($"Blocksconsumer wrote block {block.Index}");
+                        logger.Debug($"Blocksconsumer wrote block {block.Index}");
                         indexOfBlock++;
                     }
-                    logger.Info($"Blocksconsumer ended working");
+                    logger.Debug($"Blocksconsumer ended working");
                 }
             }
             catch (Exception ex)

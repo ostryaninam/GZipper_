@@ -56,10 +56,10 @@ namespace GZipLibrary
                         }
                         while (!dataQueue.TryAdd(block))
                         {
-                            logger.Info($"Blocksproducer trying to add block {block.Index} to queue");
+                            logger.Debug($"Blocksproducer trying to add block {block.Index} to queue");
                             while (!dataQueue.CanAdd.WaitOne(QUEUE_WAIT_TRYADD_TIMEOUT))
                             {
-                                logger.Info($"Blocksproducer waiting for canadd signal" +
+                                logger.Debug($"Blocksproducer waiting for canadd signal" +
                                     $" {block.Index} to queue");
                                 if (stop)
                                 {
@@ -67,7 +67,7 @@ namespace GZipLibrary
                                 }
                             }
                         }
-                        logger.Info($"Blocksproducer added block {block.Index} to queue");
+                        logger.Debug($"Blocksproducer added block {block.Index} to queue");
                     }
                     dataQueue.IsCompleted = true;
                 }
